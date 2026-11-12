@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Schneider Electric · Strategic Review</title>
+<style>
+/* fonts are local (media/fonts) so the deck runs offline in class */
+@font-face{font-family:'Switzer';src:url('media/fonts/Switzer-400.woff2') format('woff2');font-weight:400;font-display:block}
+@font-face{font-family:'Switzer';src:url('media/fonts/Switzer-500.woff2') format('woff2');font-weight:500;font-display:block}
+@font-face{font-family:'Switzer';src:url('media/fonts/Switzer-600.woff2') format('woff2');font-weight:600;font-display:block}
+
+:root{
+  --void:#040605; --bg:#090D0B; --panel:#0E1311; --hair:rgba(255,255,255,.1);
+  --white:#F4F6F5; --mid:#B9C2BD; --grey:#8B9690; --dim:#5F6A64;
+  --se:#3DCD58; --copper:#C98A4B;
+  --f:'Switzer','Helvetica Neue',Arial,sans-serif;
+  --ease:cubic-bezier(.22,.8,.2,1); --cam:cubic-bezier(.7,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--void);color:var(--white);font-family:var(--f);overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;font-variant-numeric:tabular-nums;
+  background:radial-gradient(1700px 760px at 50% 122%, rgba(0,149,48,.22), rgba(0,149,48,0) 70%),var(--void)}
+.noanim,.noanim *{transition:none!important}
+
+/* ---------- the library: slides stand on a curved rail you can scroll; the one in the middle opens ----------
+   ring mode: transforms written once per frame from a scroll position (no CSS transition);
+   open mode (#ring.tw): CSS transitions on transform/opacity only, so the move runs on the compositor.
+   only the panels on screen are drawn (.gone = visibility hidden); the corner radius snaps, never animates */
+#ring{position:absolute;inset:0;perspective:1900px;perspective-origin:50% 46%;touch-action:none}
+.pan{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;border-radius:34px;cursor:pointer;
+  background:radial-gradient(1500px 950px at 104% 110%, rgba(0,149,48,.36), rgba(0,149,48,0) 62%),radial-gradient(1100px 720px at -6% -14%, rgba(61,205,88,.10), rgba(61,205,88,0) 60%),var(--bg)}
+.pan::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 2px rgba(255,255,255,.08);pointer-events:none;transition:opacity .4s}
+#ring.tw .pan{transition:transform .9s var(--cam),opacity .6s ease}
+#ring.isopen .pan{border-radius:0;cursor:default;transition:transform .9s var(--cam),opacity .6s ease,border-radius 0s .86s}
+#ring.isopen .pan::after{opacity:0}
+.pan.gone{visibility:hidden}
+.pan:not(.open) .pulse{animation-play-state:paused}
+#stage.drag,#stage.drag .pan{cursor:grabbing}
+/* each slide = the page on top, its detail underneath; scrolling moves .in */
+.in{position:absolute;left:0;top:0;width:1920px;height:2160px}
+.in.back{transition:transform .9s var(--cam)}
+.pg{position:absolute;left:0;top:0;width:1920px;height:1080px}
+.det{position:absolute;left:0;top:1080px;width:1920px;height:1080px;border-top:1px solid var(--hair);
+  background:radial-gradient(1400px 900px at -4% 108%, rgba(0,149,48,.30), rgba(0,149,48,0) 62%),radial-gradient(1000px 640px at 104% -10%, rgba(61,205,88,.08), rgba(61,205,88,0) 60%),var(--bg)}
+.det .pn{position:absolute;right:96px;top:54px;font:400 19px/1.4 var(--f);color:var(--grey)}
+.det h2{position:absolute;left:96px;top:148px;width:880px;font:500 62px/1.05 var(--f);letter-spacing:-.03em;color:var(--white)}
+.det h2 i{font-style:normal;color:var(--se)}
+.cards{position:absolute;left:96px;right:96px;top:420px;bottom:84px;display:grid;gap:24px}
+.cd{position:relative;background:rgba(14,19,17,.8);border:1px solid var(--hair);border-radius:16px;padding:0 28px 20px;overflow:hidden}
+.cd h3{height:58px;display:flex;align-items:center;justify-content:space-between;font:500 20px/1 var(--f);color:var(--mid);border-bottom:1px solid var(--hair);margin-bottom:16px}
+.cd h3 span{font-weight:400;color:var(--grey);font-size:18px}
+.cd p{font:400 22px/1.45 var(--f);color:var(--grey);margin-bottom:16px}
+.cd p b{color:var(--white);font-weight:500}
+.tb2{display:grid;font:400 21px/1.2 var(--f);color:var(--grey);align-items:baseline}
+.tb2>div{padding:13px 0;border-bottom:1px solid var(--hair)}
+.tb2.tight>div{padding:7px 0}
+.tb2.roomy>div{padding:20px 0}
+.tb2 .r{text-align:right} .tb2 .w{color:var(--white)} .tb2 .g{color:var(--se);font-weight:600}
+.tb2 .hd2{font-size:16px;color:var(--dim);padding-top:0}
+.tb2 small{display:block;margin-top:3px;font-size:16px;color:var(--grey)}
+.nums{display:grid;gap:18px 28px}
+.nums b{display:block;font:600 50px/1 var(--f);letter-spacing:-.035em;color:var(--white)}
+.nums b.g{color:var(--se)} .nums b.c{color:var(--copper)}
+.nums span{display:block;margin-top:8px;font:400 20px/1.3 var(--f);color:var(--grey)}
+.hbar{display:grid;grid-template-columns:240px 1fr 76px;align-items:center;gap:14px;margin:12px 0;font:400 21px/1 var(--f);color:var(--mid)}
+.hbar i{display:block;height:14px;border-radius:3px;background:rgba(255,255,255,.4)} .hbar i.g{background:var(--se)}
+.hbar em{font-style:normal;color:var(--white);font-weight:600;text-align:right}
+.rt{display:grid;grid-template-columns:44px 1fr;padding:9px 0;border-bottom:1px solid var(--hair)}
+.rt em{font:500 18px/1.3 var(--f);font-style:normal;color:var(--se)}
+.rt b{font:500 20px/1.25 var(--f);color:var(--white)}
+.rt span{grid-column:2;font:400 17px/1.3 var(--f);color:var(--grey)}
+/* the bar that appears when the mouse moves on an open slide */
+#bar{position:absolute;left:0;right:0;bottom:30px;height:56px;opacity:0;transition:opacity .35s ease;pointer-events:none;z-index:50}
+#bar.on{opacity:1;pointer-events:auto}
+#bar button{position:absolute;top:0;height:56px;min-width:56px;border:0;border-radius:28px;background:rgba(18,24,21,.9);color:var(--white);font:500 19px/1 var(--f);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 22px}
+#bar button:hover{background:rgba(44,58,51,.96)}
+#bar button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .3s ease}
+#bar .bd{left:56px} #bar .bd.up svg{transform:rotate(180deg)} #bar .bc{right:56px;padding:0}
+#bar .pill{position:absolute;left:50%;top:0;transform:translateX(-50%);height:56px;display:flex;align-items:center;background:rgba(18,24,21,.9);border-radius:28px}
+#bar .pill button{position:static;background:none;padding:0 18px}
+#bar .pill button:hover{background:rgba(44,58,51,.96)}
+#bar .pill span{min-width:320px;text-align:center;font:500 19px/1 var(--f);color:var(--white)}
+#chrome{position:absolute;inset:0;pointer-events:none;transition:opacity .45s ease}
+#chrome.off{opacity:0}
+#chrome .tl{position:absolute;left:56px;top:44px;font:400 19px/1.4 var(--f);color:var(--white)}
+#chrome .tl span{display:block;color:var(--grey)}
+#chrome .tr{position:absolute;right:56px;top:44px;font:400 19px/1.4 var(--f);color:var(--grey);text-align:right}
+#chrome .arc{position:absolute;left:50%;top:868px;width:120px;margin-left:-60px}
+#chrome .nm{position:absolute;left:0;right:0;top:902px;text-align:center;font:500 27px/1.2 var(--f);color:var(--white)}
+#chrome .ct{position:absolute;left:0;right:0;top:944px;text-align:center;font:400 19px/1 var(--f);color:var(--grey)}
+#chrome .hint{position:absolute;left:0;right:0;bottom:36px;text-align:center;font:400 17px/1 var(--f);color:var(--dim)}
+
+/* ---------- slide furniture ---------- */
+.meta{position:absolute;left:96px;top:54px;font:400 19px/1.4 var(--f);color:var(--white)}
+.meta span{display:block;color:var(--grey)}
+.lg{position:absolute;right:96px;top:50px;width:150px}
+h1{position:absolute;left:96px;top:148px;font:500 80px/1.03 var(--f);letter-spacing:-.03em;color:var(--white)}
+h1 i{font-style:normal;color:var(--se)}
+h1.s{font-size:68px;line-height:1.05}
+.lead{position:absolute;left:1000px;top:160px;width:820px;font:400 31px/1.36 var(--f);letter-spacing:-.01em;color:var(--mid)}
+.lead b{color:var(--white);font-weight:400}
+.box{position:absolute;background:rgba(14,19,17,.8);border:1px solid var(--hair);border-radius:16px}
+.box .bh{position:absolute;left:28px;right:28px;top:0;height:58px;display:flex;align-items:center;justify-content:space-between;font:500 20px/1 var(--f);color:var(--mid);border-bottom:1px solid var(--hair)}
+.box .bh span{font-weight:400;color:var(--grey);font-size:18px}
+.src{position:absolute;left:96px;right:96px;bottom:22px;display:flex;justify-content:space-between;gap:48px;font:400 15px/1.4 var(--f);color:var(--dim)}
+.a{transition:opacity .7s var(--ease),transform .8s var(--ease)}
+.a.h{opacity:0;transform:translateY(14px)}
+/* build states used by the chart slides: grow, fade, draw, move, rise */
+.gx{transform-origin:left center;transition:transform 1.1s var(--ease)} .gx.neg{transform-origin:right center} .gx.h{transform:scaleX(0)}
+.fd{transition:opacity .6s ease} .fd.h{opacity:0}
+.dw{stroke-dasharray:100;stroke-dashoffset:0;transition:stroke-dashoffset 1.5s var(--ease)} .dw.h{stroke-dashoffset:100}
+.mv{transition:transform 1.2s var(--ease),opacity .35s ease} .mv.h{transform:translateX(var(--d));opacity:0}
+.ry{transition:transform 1.1s var(--cam),opacity .35s ease} .ry.h{transform:translateY(var(--d));opacity:0}
+.t{position:absolute;white-space:nowrap}
+svg.g{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:visible;pointer-events:none}
+
+/* ---------- cover ---------- */
+#p0 video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#p0 .vig{position:absolute;inset:0;background:radial-gradient(1100px 520px at 50% 30%, rgba(4,8,6,.1), rgba(4,8,6,.78) 70%),linear-gradient(180deg, rgba(4,8,6,.55) 0%, rgba(4,8,6,0) 35%, rgba(4,8,6,0) 60%, rgba(4,8,6,.88) 100%)}
+#p0 .cl{position:absolute;left:50%;top:330px;width:640px;transform:translate(-50%,-50%)}
+#p0 .cl img{width:100%;display:block}
+#p0 .cl .wipe{clip-path:inset(0 0 0 0);transition:clip-path 1.6s var(--ease)}
+#p0 .cl.h .wipe{clip-path:inset(0 100% 0 0)}
+
+/* ---------- slide 2 ---------- */
+.kp{position:absolute;left:0;right:0;top:58px;bottom:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.kp .c{position:relative;padding:28px 28px 0;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+.kp .c:nth-child(2n){border-right:0} .kp .c:nth-child(n+3){border-bottom:0}
+.kp .n{font:600 62px/1 var(--f);letter-spacing:-.035em;color:var(--white)}
+.kp .l{margin-top:14px;font:500 22px/1.2 var(--f);color:var(--white)}
+.kp .s{margin-top:3px;font:400 19px/1.3 var(--f);color:var(--grey)}
+.kp .bar{position:absolute;left:28px;right:28px;bottom:54px;height:5px;border-radius:3px;background:rgba(255,255,255,.1)}
+.kp .fill{position:absolute;left:0;top:0;height:5px;border-radius:3px;background:var(--se);width:var(--v);transform-origin:left center;transition:transform 1.4s var(--ease)}
+.kp .c.h .fill{transform:scaleX(0)}
+.kp .band{position:absolute;top:-4px;height:13px;border-radius:3px;background:rgba(61,205,88,.2);border:1px solid rgba(61,205,88,.55);left:var(--lo);width:calc(var(--hi) - var(--lo))}
+.kp .mw{position:absolute;inset:0;transition:transform 1.4s var(--ease)}
+.kp .c.h .mw{transform:translateX(calc(-1 * var(--v)))}
+.kp .mark{position:absolute;top:-6px;width:17px;height:17px;margin-left:-8.5px;border-radius:50%;background:var(--white);border:4px solid var(--se);left:var(--v)}
+.kp .tick{position:absolute;top:-8px;width:0;height:21px;border-left:2px dashed rgba(255,255,255,.75);left:var(--t)}
+.kp .tick.solid{border-left-style:solid}
+.kp .cap{position:absolute;left:28px;right:28px;bottom:20px;text-align:right;font:400 18px/1 var(--f);color:var(--grey)}
+.cable{fill:none;stroke:var(--copper);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:0;opacity:.85;transition:stroke-dashoffset 1.1s var(--ease)}
+.row.h .cable{stroke-dashoffset:100}
+.pulse{fill:none;stroke:var(--se);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:6 94;stroke-dashoffset:100;opacity:0;transition:opacity .6s}
+.row.live .pulse{opacity:.95;animation:flow 2.6s linear infinite}
+.row.hot .cable{stroke:var(--se);opacity:1;stroke-width:4}
+.row.hot .pulse{stroke:#d9ffe0;stroke-width:4;stroke-dasharray:9 41;animation-duration:1.7s}
+@keyframes flow{to{stroke-dashoffset:0}}
+.term{fill:var(--panel);stroke:var(--copper);stroke-width:2.5}
+.row.hot .term{fill:var(--se);stroke:var(--se)}
+.lbl{font:500 22px var(--f);fill:var(--white)}
+.row.hot .lbl{fill:var(--se)}
+.brd{font:400 17px var(--f);fill:var(--grey)}
+.term,.lbl,.brd{transition:opacity .6s ease .4s}
+.row.h .term,.row.h .lbl,.row.h .brd{opacity:0;transition-delay:0s}
+.dcn{position:absolute;left:1582px;top:556px;font:600 80px/1 var(--f);letter-spacing:-.04em;color:var(--white)}
+.dct{position:absolute;left:1582px;top:854px;width:226px;font:400 19px/1.32 var(--f);color:var(--grey)}
+.dct b{color:var(--white);font-weight:400}
+
+/* ---------- slide 3 ---------- */
+#p2 h1{font-size:72px}
+#p2 .lead{left:1040px;width:780px;top:156px}
+.mx .band{position:absolute;left:554px;top:438px;width:108px;height:564px;border-radius:10px;background:rgba(61,205,88,.1);border:1px solid rgba(61,205,88,.4)}
+.mx .ch{position:absolute;top:446px;width:108px;margin-left:-54px;text-align:center;font:400 18px/1.2 var(--f);color:var(--grey)}
+.mx .ch.hot{color:var(--white);font-weight:500}
+.mx .rn{position:absolute;left:124px;font:400 22px/1 var(--f);color:var(--white);white-space:nowrap}
+.mx .rn.se{font-weight:600}
+.mx .hl{position:absolute;left:124px;width:1164px;height:1px;background:var(--hair)}
+.mx .cnt{position:absolute;left:1214px;font:500 22px/1 var(--f);color:var(--white);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.mx .cnt i,.mx .key i{display:inline-block;width:13px;height:13px;border-radius:50%;background:var(--white);margin-right:8px}
+.mx .cnt i.p,.mx .key i.p{background:none;border:3px solid var(--copper)}
+.mx .cnt i.s{background:var(--se)}
+.mx .key{position:absolute;left:124px;font:400 18px/1 var(--f);color:var(--grey);display:flex;align-items:center;gap:4px}
+.mx .tot{position:absolute;top:934px;width:108px;margin-left:-54px;text-align:center;font:600 34px/1 var(--f);letter-spacing:-.02em;color:var(--white)}
+.mx .totl{position:absolute;left:124px;top:936px;font:500 21px/1.2 var(--f);color:var(--white)}
+.mx .totl span{display:block;font-weight:400;font-size:18px;color:var(--grey)}
+.mx .tb{position:absolute;top:980px;width:76px;margin-left:-38px;height:5px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+.mx .tb b{display:block;height:100%;width:var(--v);background:var(--white);border-radius:3px;transform-origin:left center;transition:transform 1.1s var(--ease)}
+.mx .tb.hot b{background:var(--se)}
+.mx .tb.h b{transform:scaleX(0)}
+.tk{position:absolute;left:0;right:0;top:0;bottom:0;display:grid;grid-template-rows:1fr 1fr 1fr}
+.tk div{padding:26px 28px 0;border-bottom:1px solid var(--hair)}
+.tk div:last-child{border-bottom:0}
+.tk b{display:block;font:600 48px/1 var(--f);letter-spacing:-.035em;color:var(--white)}
+.tk p{margin-top:10px;font:400 20px/1.36 var(--f);color:var(--grey)}
+
+/* ---------- dots: html, so the browser moves them on the GPU ---------- */
+.dl{position:absolute;inset:0;pointer-events:none}
+.dt{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;transition:transform 1.15s var(--cam),opacity .5s ease}
+.dt i{display:block;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.2);border:0 solid var(--copper);transform:scale(.75);
+  transition:transform .5s ease,background-color .5s ease}
+.dt.lit i{background:var(--se)}
+.dt.wh i{background:var(--white)}
+.dt.lo i{background:rgba(255,255,255,.3)}
+.dt.core i{background:var(--white);transform:scale(1)}
+.dt.se i{background:var(--se);transform:scale(1)}
+.dt.partial i{background:transparent;border-width:3.8px;transform:scale(.85)}
+.dt.none i{background:rgba(255,255,255,.22);transform:scale(.225)}
+
+/* ---------- shared chart text ---------- */
+.ax{font:400 17px/1 var(--f);color:var(--dim)}
+.vl{font:500 20px/1 var(--f);color:var(--mid)}
+.gl{position:absolute;width:1px;background:var(--hair)}
+.hr{position:absolute;height:1px;background:var(--hair)}
+.sm{font:400 18px/1.35 var(--f);color:var(--grey)}
+.nm2{font:500 22px/1.2 var(--f);color:var(--white)}
+.big{font:600 46px/1 var(--f);letter-spacing:-.035em;color:var(--white)}
+
+/* slide 4 */
+.ib{position:absolute;height:20px;margin-top:-10px;border-radius:3px;background:rgba(255,255,255,.26)}
+.ib.se{background:var(--se)} .ib.ref{background:none;border:1.5px dashed rgba(255,255,255,.7)} .ib.neg{background:rgba(201,138,75,.75)}
+.eq{position:absolute;display:flex;gap:26px;align-items:flex-end}
+.eq div{font:600 46px/1 var(--f);letter-spacing:-.035em}
+.eq span{display:block;margin-top:10px;font:400 17px/1.2 var(--f);color:var(--grey);letter-spacing:0}
+.why{position:absolute;padding:18px 0 0;border-top:1px solid var(--hair);font:400 21px/1.36 var(--f);color:var(--mid)}
+/* slide 5 */
+.pt{position:absolute;width:0;height:0}
+.pt i{position:absolute;left:-10px;top:-10px;width:20px;height:20px;border-radius:50%;background:var(--white);box-shadow:0 0 0 6px rgba(255,255,255,.08)}
+.pt.se i{background:var(--se);box-shadow:0 0 0 8px rgba(61,205,88,.18)}
+.pt b{position:absolute;left:18px;top:-58px;font:600 23px/1.1 var(--f);white-space:nowrap}
+.pt.se b{color:var(--se)}
+.pt span{position:absolute;left:18px;top:-32px;font:400 18px/1.2 var(--f);color:var(--grey);white-space:nowrap}
+.tbl{position:absolute;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;row-gap:0}
+.tbl div{padding:16px 0;border-bottom:1px solid var(--hair);font:400 22px/1 var(--f);color:var(--grey);text-align:right}
+.tbl div:nth-child(4n+1){text-align:left;color:var(--white)}
+.tbl .hd{font-size:17px;color:var(--dim)!important;padding-top:4px}
+.tbl .w{color:var(--white);font-weight:500} .tbl .g{color:var(--se);font-weight:600}
+/* slide 6 */
+.wc{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid var(--grey);background:var(--panel)}
+.rc{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--white)}
+.rc.se{background:var(--se)}
+.ln{position:absolute;height:4px;margin-top:-2px;background:rgba(255,255,255,.45);border-radius:2px}
+.ln.se{background:var(--se)}
+.step{position:absolute;left:28px;right:28px;padding-top:22px}
+.step b{display:block;font:500 23px/1.25 var(--f);color:var(--white)}
+.step b em{font-style:normal;color:var(--se);margin-right:12px}
+.step p{margin-top:8px;font:400 19px/1.38 var(--f);color:var(--grey)}
+/* slide 7 */
+.q{position:absolute;left:28px;right:28px}
+.q .k{font:500 19px/1 var(--f);color:var(--se)}
+.q blockquote{margin-top:14px;font:500 27px/1.28 var(--f);letter-spacing:-.015em;color:var(--white)}
+.q p{margin-top:12px;font:400 18px/1.36 var(--f);color:var(--grey)}
+.tr2{position:absolute;height:8px;margin-top:-4px;border-radius:4px;background:rgba(255,255,255,.09)}
+.tf{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:rgba(255,255,255,.75)}
+.tf.se{background:var(--se)} .tf.cu{background:var(--copper)}
+/* slide 8 */
+.trk{position:absolute;height:4px;margin-top:-2px;background:rgba(255,255,255,.14);border-radius:2px}
+.bnd{position:absolute;height:18px;margin-top:-9px;border-radius:4px;background:rgba(61,205,88,.2);border:1px solid rgba(61,205,88,.6)}
+.tck{position:absolute;width:0;height:30px;margin-top:-15px;border-left:3px solid var(--se)}
+.mk{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--white);border:5px solid var(--se)}
+.arr{position:absolute;height:0;border-top:2px dashed var(--copper)}
+/* slide 9 */
+.lvl{position:absolute;display:flex;align-items:center;gap:14px;font:500 22px/1 var(--f)}
+.lvl i{display:inline-block;width:12px;height:22px;border-radius:2px;background:rgba(255,255,255,.12);margin-right:-10px}
+.lvl i.on{background:var(--white)} .lvl.hi i.on{background:var(--se)} .lvl.hi{color:var(--se)}
+.lvl em{font-style:normal;margin-left:14px}
+/* slides 11–16 */
+.mc{position:absolute;border:1px solid var(--hair);border-radius:12px;padding:18px 20px;background:rgba(255,255,255,.02)}
+.mc b{display:block;font:500 21px/1.2 var(--f);color:var(--white)} .mc span{display:block;margin-top:7px;font:400 17px/1.3 var(--f);color:var(--grey)}
+.mc.g{background:rgba(61,205,88,.16);border-color:rgba(61,205,88,.55)} .mc.g span,.mc.b span{color:var(--se)}
+.mc.b{border:1.5px dashed rgba(61,205,88,.7)} .mc.n{background:none;border-style:dashed} .mc.n b,.mc.n span{color:var(--dim)}
+.mcs{display:inline-block;width:26px;height:16px;border-radius:4px;border:1px solid var(--hair)} .mcs.g{background:rgba(61,205,88,.3);border-color:rgba(61,205,88,.7)} .mcs.b{border:1.5px dashed rgba(61,205,88,.8)}
+.tk2{position:absolute;width:0;height:12px;margin-top:-6px;border-left:2px solid rgba(255,255,255,.28)}
+.mk2{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;box-shadow:0 0 0 6px rgba(255,255,255,.06)}
+.cap{position:absolute;border:1px solid rgba(61,205,88,.4);border-radius:12px;background:rgba(14,19,17,.92);padding:15px 20px}
+.cap b{display:block;font:500 21px/1.2 var(--f);color:var(--white)} .cap span{display:block;margin-top:6px;font:600 16px/1 var(--f);letter-spacing:.12em;color:var(--se)}
+.vp{position:absolute;border:1px solid rgba(61,205,88,.6);border-radius:16px;background:rgba(61,205,88,.13);padding:28px}
+.vp span{display:block;font:400 18px/1 var(--f);color:var(--mid)} .vp b{display:block;margin-top:16px;font:500 32px/1.15 var(--f);letter-spacing:-.02em;color:var(--white)}
+.ln.cu{background:var(--copper)} .rc.cu{background:var(--copper)}
+.qd{position:absolute}
+
+/* ---------- the three charts taken from the Pirelli deck (value curve, value-chain cards, value network), in this deck's dark look ---------- */
+.kc{position:absolute;background:rgba(14,19,17,.82);border:1px solid var(--hair);border-radius:16px}
+.kc.hl{border-color:rgba(61,205,88,.75);box-shadow:inset 0 0 0 1px rgba(61,205,88,.75)}
+.kc.g{background:rgba(61,205,88,.14);border-color:rgba(61,205,88,.6)} .kc.d{background:rgba(4,6,5,.7)}
+.kh{position:absolute;left:24px;top:22px;right:24px;display:flex;justify-content:space-between;font:600 15px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--se)}
+.kh span{letter-spacing:0;text-transform:none;font-weight:400;color:var(--grey);font-size:16px}
+.chip{display:inline-block;padding:7px 13px;border-radius:999px;font:500 16px/1 var(--f);background:rgba(255,255,255,.1);color:var(--white);white-space:nowrap}
+.chip.g{background:var(--se);color:#06120A} .chip.n{background:rgba(255,255,255,.07);color:var(--grey)} .chip.o{background:rgba(201,138,75,.22);color:#EDB27A}
+.chev{position:absolute;height:50px;background:rgba(255,255,255,.09);color:var(--white);font:600 18px/50px var(--f);letter-spacing:.14em;text-transform:uppercase;padding-left:36px;clip-path:polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%,18px 50%)}
+.chev.on{background:var(--se);color:#06120A} .chev.bad{background:var(--copper);color:#140A02}
+.plat{position:absolute;border-radius:50%;background:radial-gradient(ellipse at 50% 45%,rgba(61,205,88,.12),rgba(61,205,88,.03) 60%,rgba(61,205,88,0) 72%);border:1px solid rgba(61,205,88,.14)}
+.glow{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(61,205,88,.38),rgba(61,205,88,0))}
+.core{position:absolute;width:140px;height:140px;margin:-70px 0 0 -70px;border-radius:50%;background:#0B110E;border:2px solid var(--se);box-shadow:0 0 0 10px rgba(61,205,88,.1),0 0 60px rgba(61,205,88,.35);display:flex;align-items:center;justify-content:center}
+.core img{width:76px}
+.node{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:#0B110E;border:1.5px solid rgba(61,205,88,.55);display:flex;align-items:center;justify-content:center;font:600 19px/1 var(--f);color:var(--se)}
+.chip.gs{background:rgba(61,205,88,.16);color:#7FE394}
+.nw{margin-left:8px;font:600 12px/1 var(--f);letter-spacing:.12em;text-transform:uppercase;color:var(--se);vertical-align:2px}
+/* part 2: Harvey balls (0–4 quarters) */
+.hb{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;--c:var(--white);background:conic-gradient(var(--c) 0 calc(var(--v) * 25%),rgba(255,255,255,.05) 0);box-shadow:inset 0 0 0 2px rgba(255,255,255,.45)}
+.gw{transform-origin:left center;transition:transform 1.1s var(--ease),opacity .6s ease} .gw.h{transform:scaleX(0)} .gw.rt{transform-origin:right center}
+.tr{transition:stroke-dashoffset 1.5s var(--ease),opacity .35s ease,stroke .35s ease,stroke-width .35s ease}
+.tr.lit{stroke:#3DCD58;stroke-width:3.5}
+.pg .dim:not(.h){opacity:.16} .pg .kc.dim:not(.h),.pg .cr.dim:not(.h){opacity:.32}
+.hit{cursor:pointer} .cr{transition:opacity .35s ease,border-color .35s ease,box-shadow .35s ease,transform .8s var(--ease)}
+.kc.hit{transition:opacity .35s ease,border-color .35s ease,box-shadow .35s ease,transform .8s var(--ease)} .kc.hit:hover,.cr:hover{border-color:rgba(61,205,88,.6)}
+.pg .sel{border-color:var(--se)!important;box-shadow:0 0 0 1px var(--se),0 0 44px rgba(61,205,88,.22)}
+.hb.g{--c:var(--se);box-shadow:inset 0 0 0 2px rgba(61,205,88,.7)} .hb.cu{--c:var(--copper);box-shadow:inset 0 0 0 2px rgba(201,138,75,.85)}
+.hbi{display:inline-block;width:22px;height:22px;border-radius:50%;vertical-align:middle;background:conic-gradient(var(--se) 0 calc(var(--v) * 25%),rgba(255,255,255,.05) 0);box-shadow:inset 0 0 0 2px rgba(255,255,255,.45)}
+.tb2.f18{font-size:18px} .tb2.st{align-items:stretch} .tb2.f18 small{font-size:15px}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.01s!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="ring">
+    <!-- 1 · cover -->
+    <section class="pan" id="p0">
+      <video src="media/s3.mp4" poster="media/s3.jpg" muted loop playsinline preload="auto"></video>
+      <div class="vig"></div>
+      <div class="cl"><div class="wipe"><img src="media/logo-white.svg" alt="Schneider Electric"></div></div>
+    </section>
+
+    <!-- 2 · who is Schneider -->
+    <section class="pan" id="p1">
+      <div class="meta">Schneider Electric<span>Who is Schneider</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>The technology<br>behind <i>electricity</i></h1>
+      <p class="lead a">A French industrial tech group on the CAC 40. It doesn’t sell energy: <b>it sells the technology to distribute, manage and automate it.</b></p>
+
+      <div class="box a" style="left:96px;top:456px;width:640px;height:548px">
+        <div class="bh">Key figures<span>FY2025</span></div>
+        <div class="kp">
+          <div class="c" style="--v:59.3%;--lo:46.7%;--hi:66.7%"><div class="n" data-to="40.2" data-fmt="€{}bn" data-dec="1">€40.2bn</div><div class="l">Revenue</div><div class="s">+8.9% organic growth</div><div class="bar"><div class="band"></div><div class="mw"><div class="mark"></div></div></div><div class="cap">2030 target +7–10% a year</div></div>
+          <div class="c" style="--v:46.3%;--t:77.5%"><div class="n" data-to="18.7" data-fmt="{}%" data-dec="1">18.7%</div><div class="l">Adj. EBITA margin</div><div class="s">EBITA up 12.3% organically</div><div class="bar"><div class="tick"></div><div class="mw"><div class="mark"></div></div></div><div class="cap">2030 target ≈21.2%</div></div>
+          <div class="c" style="--v:88.8%;--t:80%"><div class="n" data-to="4.6" data-fmt="€{}bn" data-dec="1">€4.6bn</div><div class="l">Free cash flow</div><div class="s">111% of net income</div><div class="bar"><div class="fill"></div><div class="tick solid"></div></div><div class="cap">line = 100% of net income</div></div>
+          <div class="c" style="--v:19%;--t:25%"><div class="n" data-to="19" data-fmt="{}%" data-dec="0">19%</div><div class="l">Software &amp; services</div><div class="s">share of revenue</div><div class="bar"><div class="fill"></div><div class="tick"></div></div><div class="cap">2030 target ~25%</div></div>
+        </div>
+      </div>
+
+      <div class="box a" style="left:760px;top:456px;width:1064px;height:548px"><div class="bh">Seven arenas, one system<span>1 dot = 1% of 2025 orders</span></div></div>
+      <svg class="g" viewBox="0 0 1920 1080" aria-hidden="true"><g id="rows"></g>
+        <g class="a" id="node"><circle cx="852" cy="760" r="46" fill="#0b1512" stroke="#3DCD58" stroke-width="2.5"/><image href="media/se-emblem.png" x="828" y="736" width="48" height="48" style="filter:brightness(0) invert(1)"/></g></svg>
+      <div class="dl" id="d2"></div>
+      <div class="dcn a" id="dcn" data-to="30" data-fmt="{}%" data-dec="0">30%</div>
+      <div class="dct a"><b>of 2025 orders come from data centres</b>, the #1 market, growing more than 10% a year to 2030</div>
+      <div class="src a"><span>Source: Schneider Electric FY2025 results (26 Feb 2026), 2025 URD, Capital Markets Day (Dec 2025). Arenas and brands: group assessment from company reports.</span><span>2</span></div>
+    </section>
+
+    <!-- 3 · where we compete: value curve, after Pirelli 13 -->
+    <section class="pan" id="p2">
+      <div class="meta">Schneider Electric<span>Where we compete</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>Who does Schneider meet<br>in each <i>arena</i>?</h1>
+      <p class="lead a" data-t="200">Schneider and its ten main rivals across the seven arenas of the industry: <b>only Siemens is present everywhere, partly in e-mobility.</b></p>
+      <div class="src a" data-t="3200"><span>Source: group assessment from company reports (2025). Siemens includes Smart Infrastructure and Digital Industries Software; data centres are 26% of Legrand’s 2025 sales.</span><span>3</span></div>
+    </section>
+
+    <!-- 4 · an industry that creates value -->
+    <section class="pan" id="p3">
+      <div class="meta">Schneider Electric<span>An industry that creates value</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">Which industries<br>create value, and<br>where does <i>ours</i> sit?</h1>
+      <p class="lead a" data-t="200">Electrical equipment earns <b>6.6 points more than its capital costs</b>, 3.3× the total market.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1100px;height:548px"><div class="bh">Return on capital minus its cost<span>ROIC − WACC, in points</span></div></div>
+      <div class="box a" data-t="450" style="left:1220px;top:456px;width:604px;height:548px"><div class="bh">Electrical equipment<span>US average</span></div></div>
+      <div class="eq a" data-t="2600" style="left:1248px;top:548px"><div>15.6%<span>return on capital</span></div><div style="color:var(--grey)">−</div><div>9.0%<span>cost of capital</span></div><div style="color:var(--grey)">=</div><div style="color:var(--se)">+6.6<span>points</span></div></div>
+      <div class="t sm a" data-t="2900" style="left:1248px;top:690px;color:var(--mid);font-weight:500">Why it wins</div>
+      <div class="why a" data-t="3000" style="left:1248px;width:548px;top:728px">Structural demand from electrification, data centres and AI.</div>
+      <div class="why a" data-t="3150" style="left:1248px;width:548px;top:816px">High switching costs: installed equipment is rarely replaced by a rival.</div>
+      <div class="why a" data-t="3300" style="left:1248px;width:548px;top:904px">Demand grows faster than supply.</div>
+      <div class="src a" data-t="3300"><span>Source: Damodaran Online, US industry averages, Jan 2026 (return on invested capital and cost of capital). Spread = ROIC − WACC.</span><span>4</span></div>
+    </section>
+
+    <!-- 5 · best balance, highest return -->
+    <section class="pan" id="p4">
+      <div class="meta">Schneider Electric<span>Best balance, highest return</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">Why does Schneider<br>earn more on its <i>capital</i><br>than its rivals?</h1>
+      <p class="lead a" data-t="200">Return on capital is margin after tax times capital turnover. <b>Schneider leads on neither, yet sits on the highest curve.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1100px;height:548px"><div class="bh">Margin × capital turnover<span>along each curve the return is the same</span></div></div>
+      <div class="box a" data-t="450" style="left:1220px;top:456px;width:604px;height:548px"><div class="bh">The breakdown<span>2025</span></div>
+        <div class="tbl" style="left:28px;right:28px;top:76px">
+          <div class="hd"></div><div class="hd">Margin</div><div class="hd">Turnover</div><div class="hd">ROIC</div>
+          <div style="font-weight:600;color:var(--se)">Schneider</div><div>12.8%</div><div>1.28×</div><div class="g">16.4%</div>
+          <div>Rockwell</div><div>10.5%</div><div class="w">1.30×</div><div>13.7%</div>
+          <div>Legrand</div><div class="w">14.1%</div><div>0.82×</div><div>11.6%</div>
+        </div>
+        <p class="sm" style="position:absolute;left:28px;right:28px;top:330px;font-size:20px;color:var(--mid)">Legrand has the margin, Rockwell the turnover. Schneider leads on neither axis but holds both together: customers run the full stack, hardware plus EcoStruxure software, and rarely switch, which protects margin while the installed base keeps selling.</p>
+      </div>
+      <div class="src a" data-t="3600"><span>Source: group calculations from 2025 annual reports. ROIC = operating income × (1 − tax rate) ÷ (equity + net debt). Rockwell’s fiscal year ends September 2025.</span><span>5</span></div>
+    </section>
+
+    <!-- 6 · competitive advantage -->
+    <section class="pan" id="p5">
+      <div class="meta">Schneider Electric<span>Competitive advantage</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">How large is the<br><i>advantage</i>, and where<br>does it come from?</h1>
+      <p class="lead a" data-t="200">The advantage is the installed base, not price: <b>≈47% return on capital excluding goodwill</b>, three times the industry.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1100px;height:548px"><div class="bh">Return on capital vs its cost<span>○ cost of capital&nbsp;&nbsp;&nbsp;● return on capital</span></div></div>
+      <div class="box a" data-t="450" style="left:1220px;top:456px;width:604px;height:548px"><div class="bh">Why customers stay<span>the installed base</span></div>
+        <div class="step a" data-t="3000" style="top:62px"><b><em>1</em>Everything talks to everything</b><p>Switchgear, UPS, cooling, building and automation software share one platform, EcoStruxure.</p></div>
+        <div class="step a" data-t="3200" style="top:222px;border-top:1px solid var(--hair)"><b><em>2</em>Changing one piece is expensive</b><p>Once installed, replacing one part means re-engineering the rest.</p></div>
+        <div class="step a" data-t="3400" style="top:356px;border-top:1px solid var(--hair)"><b><em>3</em>So the base keeps selling</b><p>Customers stay and keep buying upgrades, services and software on the same installed base.</p></div>
+      </div>
+      <div class="src a" data-t="3400"><span>Source: 2025 annual reports, group calculations. Schneider (scenario): op. income €6,699m, tax 23.5%, equity €17,527m, net debt €13,721m. Rockwell: $1,073m, 18.3%, $3,654m, $2,756m. Legrand: €1,808.5m, 25.9%, €7,334m, €4,222.6m. Industry: Damodaran, electrical equipment.</span><span>6</span></div>
+    </section>
+
+    <!-- 7 · vision & mission -->
+    <section class="pan" id="p6">
+      <div class="meta">Schneider Electric<span>Vision &amp; mission</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>How far is Schneider<br>from its 2030 <i>purpose</i>?</h1>
+      <p class="lead a" data-t="200">Climate and access are past halfway; <b>efficiency, the core of the mission, is only at 9% of its target.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:600px;height:548px">
+        <div class="q" style="top:30px"><div class="k">Vision</div><blockquote>“Build a more sustainable and resilient future, for everyone.”</blockquote><p>Emissions, energy access, skills and design turn a broad vision into outcomes we can count.</p></div>
+        <div class="hr" style="left:28px;right:28px;top:262px"></div>
+        <div class="q" style="top:288px"><div class="k">Mission</div><blockquote style="font-size:24px">“Be the customer’s energy technology partner for efficiency and sustainability, through electrification, automation and digital intelligence.”</blockquote><p>Energy saved is what customers get, software shows it, trained people deliver it.</p></div>
+      </div>
+      <div class="box a" data-t="450" style="left:720px;top:456px;width:1104px;height:548px"><div class="bh">Progress to the 2030 target<span>latest → 2030</span></div></div>
+      <div class="src a" data-t="3400"><span>Source: Schneider Electric 2025 URD, Integrated Report and se.com/company-mission. Cumulative: CO₂ since 2018, access and training since 2009, energy from 2026. Progress = latest value ÷ 2030 target.</span><span>7</span></div>
+    </section>
+
+    <!-- 8 · level of ambition -->
+    <section class="pan" id="p7">
+      <div class="meta">Schneider Electric<span>Level of ambition</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>How far does Schneider<br>want to go by <i>2030</i>?</h1>
+      <p class="lead a" data-t="200">The ambition is margin, not speed: growth and return on capital are already in range; <b>the step is +2.5 points of margin.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1728px;height:548px"><div class="bh">FY2025 against the 2026–2030 ambition<span>● FY2025&nbsp;&nbsp;&nbsp;▬ 2030 ambition</span></div></div>
+      <div class="src a" data-t="3600"><span>Source: Schneider Electric FY2025 results (26 Feb 2026) and Capital Markets Day (11 Dec 2025). Organic = constant scope and exchange rates. 2030 margin = 18.7% + 2.5 pts.</span><span>8</span></div>
+    </section>
+
+    <!-- 9 · five forces -->
+    <section class="pan" id="p8">
+      <div class="meta">Schneider Electric<span>Five forces</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>How hard do the five<br>forces push on <i>profits</i>?</h1>
+      <p class="lead a" data-t="200">Rivalry decides profits: <b>entry and substitutes are blocked, ten rivals are not.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1728px;height:548px"><div class="bh">Weight on industry profits and intensity<span>1 dot = 1% of the weight</span></div></div>
+      <div class="dl" id="d9"></div>
+      <div class="src a" data-t="3600"><span>Source: group assessment. Supply side: commodities, tariffs, capacity. Demand side: AI data centres, electrification.</span><span>9</span></div>
+    </section>
+
+    <!-- 10 · PESTEL -->
+    <section class="pan" id="p9">
+      <div class="meta">Schneider Electric<span>PESTEL</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">Which macro forces<br>raise prices, and<br>which raise <i>costs</i>?</h1>
+      <p class="lead a" data-t="200">Demand outruns supply, but <b>every factor also raises costs somewhere:</b> margins need pricing discipline.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1728px;height:548px"><div class="bh">Weight on industry profitability and what drives it<span>1 dot = 1% of the weight&nbsp;&nbsp;&nbsp;↑ = raises</span></div></div>
+      <div class="dl" id="d10"></div>
+      <div class="src a" data-t="3600"><span>Source: group assessment of the industry (weights total 100%). IRA and EU building rules; IEA (power demand); EU F-gas rules (SF₆); Schneider Electric 2025 URD.</span><span>10</span></div>
+    </section>
+
+    <!-- 11 · market matrix -->
+    <section class="pan" id="p10">
+      <div class="meta">Schneider Electric<span>Market matrix</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>Where will Schneider<br>grow <i>next</i>?</h1>
+      <p class="lead a" data-t="200">Close to the core: <b>it buys the know-how it lacks</b> and divests what does not fit, €1–1.5bn of sales.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1290px;height:548px"><div class="bh">Customers × offers<span>from what it sells today to what it could sell tomorrow</span></div></div>
+      <div class="box a" data-t="450" style="left:1410px;top:456px;width:414px;height:548px"><div class="bh">Know-how it is buying<span>2025–2026</span></div></div>
+      <div class="src a" data-t="3400"><span>Source: Schneider Electric Capital Markets Day (Dec 2025), H1 2026 results, company announcements. Software &amp; services target: ~25% of sales by 2030.</span><span>11</span></div>
+    </section>
+
+    <!-- 12 · headlines from the future -->
+    <section class="pan" id="p11">
+      <div class="meta">Schneider Electric<span>Headlines from the future</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>Five headlines<br>from the <i>future</i></h1>
+      <p class="lead a" data-t="200">Two feed the volume engine, three hit price and margin. <b>The challenge: protect price while it keeps winning on volume.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1728px;height:548px"><div class="bh">Headline, the number behind it, and what it hits<span>scenarios, not forecasts</span></div></div>
+      <div class="src a" data-t="3400"><span>Source: Wood Mackenzie (US transformer shortfall); CBRE North America Data Center Trends H2 2025; Channel Dive; ARC Advisory; Latitude Media; Schneider Electric FY2025 results (net price −€179m).</span><span>12</span></div>
+    </section>
+
+    <!-- 13 · value chain -->
+    <section class="pan" id="p12">
+      <div class="meta">Schneider Electric<span>Value chain</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">Which activities<br>deliver the promise<br>to the <i>customer</i>?</h1>
+      <p class="lead a" data-t="200">Two engines carry the promise, <b>service is the gap:</b> supply chain and partners lead, most of the installed base goes unserviced.</p>
+      <div class="src a" data-t="3600"><span>Source: group assessment backed by Schneider Electric FY2025 results, Capital Markets Day (Dec 2025), Gartner Supply Chain Top 25 (2023–2026), WEF Global Lighthouse Network.</span><span>13</span></div>
+    </section>
+
+    <!-- 14 · operating model -->
+    <section class="pan" id="p13">
+      <div class="meta">Schneider Electric<span>Operating model</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">What operating<br>model makes the<br><i>promise</i> possible?</h1>
+      <p class="lead a" data-t="200">Six levers wired into four capabilities: <b>every capability needs three levers at once</b>, so a rival cannot copy it piece by piece.</p>
+      <div class="src a" data-t="3600"><span>Framework: session 5 (operating model S-L-O-P-T-M) and Porter’s activity-system fit. Data: Schneider Electric FY2025 results, Capital Markets Day (Dec 2025), 2025 Sustainable Development Report.</span><span>14</span></div>
+    </section>
+
+    <!-- 15 · resources & competences -->
+    <section class="pan" id="p14">
+      <div class="meta">Schneider Electric<span>Resources &amp; competences</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">How strong is<br>Schneider where<br>it <i>matters</i>?</h1>
+      <p class="lead a" data-t="200">Strong in supply chain and reach; <b>the gaps are pricing and lifecycle services</b>, two levers that matter for the promise.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:1728px;height:548px"><div class="bh">Relevance to compete and relative strength, 0–10<span>○ relevance&nbsp;&nbsp;&nbsp;● strength&nbsp;&nbsp;&nbsp;copper = gap</span></div></div>
+      <div class="src a" data-t="3600"><span>Source: group assessment. Relevance: for ‘helping customers use energy better’. Strength: against Siemens, ABB, Eaton, Legrand, Honeywell. Evidence: Schneider FY2025 results, Gartner, Capital Markets Day (Dec 2025).</span><span>15</span></div>
+    </section>
+
+    <!-- 16 · importance × strength -->
+    <section class="pan" id="p15">
+      <div class="meta">Schneider Electric<span>Strategic importance × strength</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">Where are the key<br>strengths and the<br>key <i>weaknesses</i>?</h1>
+      <p class="lead a" data-t="200">Protect the ecosystem, fix pricing and services: <b>the weaknesses sit exactly where the 2030 margin must come from.</b></p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:860px;height:548px"></div>
+      <div class="box a" data-t="450" style="left:980px;top:456px;width:844px;height:548px"><div class="bh">What each quadrant asks for<span>cut at 5, as in session 5</span></div></div>
+      <div class="src a" data-t="3600"><span>Source: scores from slide 15 (0–10); quadrants cut at 5. Group assessment backed by the evidence on the value-chain slide.</span><span>16</span></div>
+    </section>
+
+    <!-- 17 · strengths & weaknesses -->
+    <section class="pan" id="p16">
+      <div class="meta">Schneider Electric<span>Strengths &amp; weaknesses</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1 class="s">What makes Schneider<br>strong, and what<br>holds it <i>back</i>?</h1>
+      <p class="lead a" data-t="200">Strong where reach and the ecosystem matter; <b>weak on capital and pricing</b>, the levers of the 2030 margin goal.</p>
+      <div class="box a" data-t="350" style="left:96px;top:456px;width:852px;height:548px"><div class="bh">Strengths<span>each backed by a number</span></div></div>
+      <div class="box a" data-t="450" style="left:972px;top:456px;width:852px;height:548px"><div class="bh">Weaknesses<span>against the best rival</span></div></div>
+      <div class="src a" data-t="3600"><span>Source: Schneider Electric FY2025 results (26 Feb 2026), Capital Markets Day (Dec 2025), se.com; ABB Q4 2025 results (ROCE 25.3%, operational EBITA margin 19.0%). ROCE as each company reports it.</span><span>17</span></div>
+    </section>
+
+    <!-- 18 · conclusion -->
+    <section class="pan" id="p17">
+      <div class="meta">Schneider Electric<span>Conclusion</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>Its advantage is the<br><i>installed base</i>, not price</h1>
+      <div class="src a" data-t="2600"><span>Source: slides 2–17 of this review.</span><span>18</span></div>
+    </section>
+
+    <!-- 19 · appendix -->
+    <section class="pan" id="p18">
+      <div class="meta">Schneider Electric<span>Appendix</span></div><img class="lg" src="media/logo-white.svg" alt="">
+      <h1>Sources and<br><i>definitions</i></h1>
+      <p class="lead a" data-t="200">Where every number comes from, and how the ratios are calculated. <b>Group assessments are marked as such on each slide.</b></p>
+      <div class="src a" data-t="1600"><span>Group presentation, Strategy, ESCP Business School.</span><span>31</span></div>
+    </section>
+  </div>
+
+  <div id="chrome">
+    <div class="tl">Schneider Electric<span>Strategic review, FY2025</span></div>
+    <div class="tr">ESCP Business School<br>Strategy</div>
+    <svg class="arc" viewBox="0 0 120 20" aria-hidden="true"><path d="M4 16 Q60 -6 116 16" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.5"/></svg>
+    <div class="nm" id="nm"></div><div class="ct" id="ct"></div>
+    <div class="hint">scroll or drag to browse · click or Enter to open · ↓ for the detail · Esc to come back</div>
+  </div>
+  <div id="bar">
+    <button class="bd" id="bd"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span id="bdl">Detail</span></button>
+    <div class="pill"><button id="bp" aria-label="previous"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><span id="bn"></span><button id="bx" aria-label="next"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+    <button class="bc" id="bc" aria-label="back to the library"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const stage = $('#stage'), ring = $('#ring'), chrome = $('#chrome');
+  let K = 1; const fit = () => { K = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(-50%,-50%) scale(${K})`; };
+  addEventListener('resize', fit); fit();
+  const NS = 'http://www.w3.org/2000/svg';
+  const mk = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); p && p.appendChild(e); return e; };
+  const el = (cls, css, html, p, t) => { const e = document.createElement('div'); e.className = cls; if (css) e.style.cssText = css; if (html != null) e.innerHTML = html; if (t != null) e.dataset.t = t; p.appendChild(e); return e; };
+  /* ================= PART 2 · strategic and enabling priorities (group work on priorities) =================
+     one data set feeds every new slide: the reviewed SWOT, the priorities with their one-pagers, the impact matrix and the review */
+  const SWOT = {
+    O: [['O1', 'AI data-centre investment', '30% of orders', 0, 12], ['O2', 'Smarter grids, AI energy tools', '+3.6% power demand a year', 0, 10], ['O3', 'Durable and circular products', 'Ecodesign and climate-resilience demand', 0, 10]],
+    T: [['T1', 'Raw materials and tariffs', '−€255m on 2025 profit', 0, 17], ['T2', 'Rivals selling complete systems', 'Siemens in all 7 arenas', 0, 3], ['T3', '800V DC in AI factories', 'a new architecture to design for', 2, 9],
+      ['T4', 'Data-centre boom slows', '−6% NA capacity under construction', 1, 12], ['T5', 'Low-cost Chinese automation', 'US imports ×4 since 2023', 1, 12], ['T6', 'Skilled-labour shortage', '2.4 retire per new worker', 1, 10]],
+    S: [['S1', 'Integrated portfolio', '7 of 7 arenas', 0, 3], ['S2', 'Partner network', '~1M partners', 0, 13], ['S3', 'Energy management software', 'ahead of Siemens on 4 of 7 criteria', 0, 15],
+      ['S4', 'Installed base, connected', '62% of revenue, +15%', 1, 15], ['S5', 'Supply-chain execution', 'Gartner #1, 2023–2026', 1, 13]],
+    W: [['W1', 'Prices lag costs', 'net price −€179m', 0, 17], ['W2', 'Installed base rarely serviced', '~16% serviced', 0, 13], ['W3', 'Data-centre mix dilutes margin', '18.7% vs ABB 19.0%', 0, 17]] };
+  const SWALL = Object.values(SWOT).flat(), SWF = c => SWALL.find(s => s[0] === c);
+  const MEAS = [['Financials', 'Organic growth', '+8.9%', '+7–10% a year'], ['Financials', 'Adj. EBITA margin', '18.7%', '≈21.2%'], ['Financials', 'ROCE', '15.1%', '15–20%'], ['Financials', 'Software &amp; services share', '19%', '~25%'],
+    ['Customer', 'Installed base serviced', '~16%', '30%'], ['Customer', 'Energy saved or electrified', '129 TWh', '1,500 TWh'], ['Customer', 'Software with carbon insights', '29%', '100%'],
+    ['Process', 'Net price effect', '−€179m', '≥ 0'], ['Process', 'Partners certified for services', '2027 base', '×2'],
+    ['Learning &amp; growth', 'Employees upskilled each year', '31%', '100%'], ['Learning &amp; growth', 'Young people trained', '1.4M', '3M'],
+    ['ESG', 'CO₂ saved and avoided', '913 Mt', '1.5 Gt'], ['ESG', 'People with energy access', '67M', '100M'], ['ESG', 'Offers with circular design', '27%', '100%']];
+  const HZ = ['Extend and defend the core', 'Build and scale emerging businesses', 'Create options for future growth'];
+  const PRI = [
+    { c: 'SP1', k: 'SP', hz: { 1: 'm' }, s: 'Integrated solutions, margins', nav: 'SP1 · Core growth', h: '<i>SP1</i> Grow integrated<br>solutions, protect<br>margins', name: 'Grow integrated solutions while protecting margins',
+      desc: 'Sell more complete systems to data centres, and the same systems to utilities, <b>while prices finally cover costs.</b>',
+      link: ['O1', 'T1', 'T2', 'T4', 'T5', 'S1', 'S2', 'S4', 'S5', 'W1', 'W3'], why: 'In 2025 tariffs and raw materials beat price rises: profit came from volume, and data-centre systems dilute the margin.',
+      obj: 'Profitable growth in the core business by 2030', krs: [['Organic revenue growth', '+8.9%', '+7–10% a year', '2030', 'C'], ['Adjusted EBITA margin', '18.7%', '≈21.2%', '2030', 'C'], ['Net price effect on profit', '−€179m', '≥ 0', '2028', 'G']],
+      own: 'Head of Energy Management with the regional sales presidents; the CFO owns pricing.', res: 'Integrated portfolio, ~1M partners, regional factories; price analytics from E2, pass-through clauses from E3.',
+      init: ['Integrated offers for AI data centres, designs aligned with NVIDIA', 'The same offer for utilities: the US is 15% short of transformers', 'Regional price and discount monitoring', 'Cost pass-through clauses in new contracts'],
+      ms: [['2027', 'price monitoring live, pass-through in new contracts'], ['2028', 'net price effect back to zero or better'], ['2030', 'growth and margin targets reached']],
+      dec: ['Modify', 'Two of three key results had no number, and nothing hedged a data-centre slowdown (T4, −6%).', 'Targets taken from the level of ambition; utilities added as a second market.'],
+      src: 'Schneider Electric FY2025 results; Capital Markets Day (Dec 2025); CBRE H2 2025; Wood Mackenzie.' },
+    { c: 'SP2', k: 'SP', hz: { 2: 'm' }, s: 'Efficiency &amp; circular services', nav: 'SP2 · Services', h: '<i>SP2</i> Scale efficiency<br>and circular<br>services', name: 'Scale energy-efficiency and circular upgrade services',
+      desc: 'Sell efficiency retrofits and circular upgrades on the equipment already installed, <b>delivered with partners.</b>',
+      link: ['O3', 'T2', 'S1', 'S2', 'S3', 'S4', 'W2'], why: 'Only about 16% of the installed base is serviced, and software and services are 19% of revenue against a ~25% ambition.',
+      obj: 'Services become a second growth engine by 2030', krs: [['Software and services share of revenue', '19%', '~25%', '2030', 'C'], ['Offers with circular design', '27%', '100%', '2030', 'C'], ['Energy saved or electrified for customers', '129 TWh', '1,500 TWh', '2030', 'C']],
+      own: 'Head of Services in each business, with regional partner managers.', res: 'Service teams, partner technicians, EcoStruxure remote monitoring, refurbishment lines from E3.',
+      init: ['Efficiency audit and retrofit offer for the installed base', 'Circular upgrade and refurbishment programme', 'A service contract sold with every new system', 'Partner-delivered services for smaller sites'],
+      ms: [['2027', 'standard offers in priority markets'], ['2028', 'partner delivery in all four regions'], ['2030', '~25% of revenue from software and services']],
+      dec: ['Modify', 'Same key results as E1: the offer and the capability behind it were measured twice.', 'SP2 now measures what customers buy: software and services share, circular offers, energy saved.'],
+      src: 'Schneider Electric FY2025 results (software 8% + field services 11% = 19%); Capital Markets Day (Dec 2025, ~25% by 2030); 2025 URD.' },
+    { c: 'SP3', k: 'SP', hz: { 3: 'm' }, s: 'Smart energy for communities', nav: 'SP3 · Energy access', h: '<i>SP3</i> Smart energy for<br>communities with<br>weak grids', name: 'Develop smart-energy services for underserved communities',
+      desc: 'Test microgrids and smart energy services with local partners, <b>where electricity is missing or unreliable.</b>',
+      link: ['O2', 'O3', 'T3', 'S1', 'S2', 'S3'], why: 'Grids must get smarter and more resilient, and 33M people are still missing from the target of 100M with access to energy.',
+      obj: 'A smart-energy model that can scale, validated by 2030', krs: [['Pilot communities live', '0', '2', '2028', 'G'], ['People with access to energy (company target)', '67M', '100M', '2030', 'C'], ['Pilots that cover their operating costs', '–', '≥ 1', '2030', 'G']],
+      own: 'Innovation and sustainability teams, with regional leaders and local partners.', res: 'EcoStruxure microgrid technology, engineering teams, local partners; a pilot budget to size in 2027.',
+      init: ['Select two pilot communities and their partners', 'Deploy microgrids and smart meters', 'Track reliability, cost and access', 'Decide in 2030: scale, change or stop'],
+      ms: [['2027', 'sites and partners chosen'], ['2028', 'two pilots live'], ['2029', 'technical and financial review'], ['2030', 'scale, change or stop']],
+      dec: ['Retain', 'Low impact by 2030 is what an H3 option looks like: two pilots cannot add 33M people. It keeps the option open.', 'No change: judged on its 2030 stage-gate decision, not on its 2030 impact.'],
+      src: 'Schneider Electric 2025 URD and se.com/company-mission (access to energy, 67M → 100M); pilots are a group proposal.' },
+    { c: 'E1', k: 'E', hz: { 2: 'm', 1: 'a' }, cap: 'Lifecycle services · L P T', s: 'Lifecycle services', nav: 'E1 · Lifecycle services', h: '<i>E1</i> Lifecycle services<br>on the installed<br>base', name: 'Lifecycle services on the installed base',
+      desc: 'Map, connect and service the equipment already sold, <b>with partners and remote monitoring.</b>',
+      link: ['S4', 'W2', 'T2'], why: 'Service is the only activity of the value chain where Schneider is behind its rivals: about 84% of the installed base goes unserviced.',
+      obj: 'Service the installed base Schneider has already sold', krs: [['Installed base serviced', '~16%', '30%', '2030', 'G'], ['Installed base mapped in the top markets', '–', '100%', '2027', 'G']],
+      own: 'Heads of Services in both businesses, with regional leads.', res: 'Field staff and partner technicians, installed-base data from E2, a training budget to size.',
+      init: ['Map and tag the installed base', 'Standard service contracts', 'Remote monitoring through EcoStruxure', 'Refurbishment and upgrade programmes'],
+      ms: [['2027', 'top markets mapped, offer live'], ['2028', 'service network in all four regions'], ['2030', '30% of the installed base serviced']],
+      dec: ['Modify', 'Its key results overlapped with SP2 (software and services share) and E4 (partner certification).', 'Keeps the coverage target (~16% → 30%) and adds mapping; certification moves to E4.'],
+      src: 'Schneider Electric FY2025 results; value chain, slide 13; group proposal for the targets.' },
+    { c: 'E2', k: 'E', hz: { 1: 'm', 2: 'm', 3: 'm' }, cap: 'Connected systems · S P T', s: 'Connected software &amp; data', nav: 'E2 · Software & data', h: '<i>E2</i> One connected<br>software and data<br>platform', name: 'One connected software and data platform',
+      desc: 'EcoStruxure, ETAP, AVEVA, AiDASH and Cognite on one data layer: <b>one view of every customer and asset.</b>',
+      link: ['S1', 'S3', 'T3', 'W1'], why: 'Customers stay because their systems are connected: the fight with Siemens is about integration, not single products.',
+      obj: 'One platform under every offer by 2028', krs: [['AiDASH and Cognite on the shared data layer', '0 of 2', '2 of 2', '2028', 'G'], ['Software with carbon insights', '29%', '100%', '2030', 'C'], ['Regions with price and margin analytics', '0 of 4', '4 of 4', '2027', 'G']],
+      own: 'A Chief Digital Officer, with the heads of both businesses.', res: '350+ AI engineers; AiDASH ($350m, done Jul 2026); Cognite ($3.1bn, pending); the software teams.',
+      init: ['A common data model for assets and customers', 'Integrate AiDASH and Cognite', 'The AI model for energy operators (CMD 2025)', 'Price and margin analytics on the same data'],
+      ms: [['2027', 'shared data layer and price analytics live'], ['2028', 'acquisitions integrated'], ['2030', 'carbon insights in all software']],
+      dec: ['Retain', 'Main driver of carbon insights, and the base every horizon builds on.', 'The software and services key result is left to SP2 only; stays first in the sequence.'],
+      src: 'Facilities Dive (3 Aug 2026): AiDASH completed, Cognite pending; Capital Markets Day (Dec 2025); 2025 URD (carbon insights 29%).' },
+    { c: 'E3', k: 'E', hz: { 1: 'm', 2: 'a' }, cap: 'Regional supply chain · S L M', s: 'Regional supply chain', nav: 'E3 · Supply chain', h: '<i>E3</i> Resilient<br>regional supply<br>chain', name: 'Resilient regional supply chain',
+      desc: 'Make and buy close to where the equipment is sold, <b>with key suppliers co-designing the parts.</b>',
+      link: ['S5', 'T1', 'W1'], why: 'Tariffs and raw materials cost €255m in 2025; local capacity also gets data-centre equipment out faster.',
+      obj: 'Protect the margin while volume grows', krs: [['New contracts with cost pass-through clauses', '–', '100%', '2027', 'G'], ['On-time delivery in all engineer-to-order plants', '97% El Paso', '≥ 95%', '2030', 'G'], ['Copper, steel and chips dual-sourced', '–', '100%', '2028', 'G']],
+      own: 'The Chief Supply Chain Officer.', res: '160+ factories, 4 hubs, 50,000+ suppliers, €19bn bought a year; the Mt. Juliet plant (Tennessee, Nov 2025).',
+      init: ['Local capacity for data-centre equipment', 'Dual sourcing of copper, steel and chips', 'Co-design with key suppliers, as with Infineon', 'Pass-through clauses, agreed with sales', 'Refurbishment lines for SP2'],
+      ms: [['2027', 'pass-through in all new contracts'], ['2028', 'dual sourcing in place'], ['2030', '≥ 95% on time in all ETO plants']],
+      dec: ['Modify', 'Its 90% local-production target is already met today (slide 13).', 'Replaced by pass-through, delivery and sourcing targets; net price stays with SP1.'],
+      src: 'FY2025 results (−€255m); WEF Lighthouse Network, Jul 2026 (El Paso on time 61% → 97%); Mt. Juliet plant opening, Nov 2025.' },
+    { c: 'E4', k: 'E', hz: { 1: 'm', 2: 'm', 3: 'a' }, cap: 'Partner reach · L O P', s: 'Partner-led reach', nav: 'E4 · Partner reach', h: '<i>E4</i> Partner-led<br>reach and local<br>delivery', name: 'Partner-led reach and local delivery',
+      desc: 'About 1M partners sell integrated systems, <b>deliver services locally and run the pilots.</b>',
+      link: ['S2', 'W1', 'W2'], why: 'Partners make marketing and sales a clear lead; now they also have to carry services (SP2), price (W1) and the pilots (SP3).',
+      obj: 'Turn reach into recurring revenue', krs: [['Partners certified for services', '2027 base', '×2', '2030', 'G'], ['Regions tracking discounts against list price', '0 of 4', '4 of 4', '2027', 'G'], ['Distributors under price-discipline rules', '–', '100%', '2028', 'G']],
+      own: 'Regional presidents, with a global partner-programme lead.', res: 'Partner programme and training, regional teams, local partners for the SP3 pilots.',
+      init: ['Service certification, with E1', 'Price-discipline rules for distributors', 'Joint offers with partners', 'Local partners for the SP3 pilots'],
+      ms: [['2027', 'baseline and discount tracking live'], ['2028', 'certification in all regions'], ['2030', 'certified partners doubled']],
+      dec: ['Retain', 'Main driver of partner certification, and it carries all three horizons.', 'Pilot key result left to SP3; certification now sits here only.'],
+      src: 'Schneider Electric FY2025 results; Capital Markets Day (Dec 2025); value chain, slide 13.' },
+    { c: 'E5', k: 'E', hz: { 1: 'm', 2: 'm', 3: 'a' }, cap: 'People and Management systems · P M', lev: 1, s: 'Skills for electrification', nav: 'E5 · Skills', h: '<i>E5</i> Skills for the<br>electrification<br>workforce', name: 'Skills for the electrification workforce', added: 1,
+      desc: 'Train the people who install and service the systems: <b>employees, partner technicians and young people.</b>',
+      link: ['T6', 'W2', 'S2'], why: '2.4 skilled workers retire for every new one, and the services push of SP2 and E1 needs technicians.',
+      obj: 'Enough skilled hands to deliver services and growth', krs: [['Employees upskilled each year', '31%', '100%', '2030', 'C'], ['Young people trained in energy jobs', '1.4M', '3M', '2030', 'C'], ['Technician vacancies filled within 90 days', '2027 base', '≥ 90%', '2030', 'G']],
+      own: 'The Chief Human Resources Officer, with regional training leads.', res: 'Internal academies, the partner training programme of E4, vocational schools in the SP3 pilot regions.',
+      init: ['Technician academies for the services push (SP2, E1)', 'A yearly upskilling plan for every employee', 'Vocational training with schools in emerging markets', 'Local operators trained in the SP3 pilots'],
+      ms: [['2027', 'academies open in all four regions'], ['2028', '60% of employees upskilled a year'], ['2030', '3M young people trained']],
+      dec: ['New', 'No priority owns learning &amp; growth: both measures stop at a half ball (slide 28).', 'A new enabling priority on the People and Management systems levers, answering the labour shortage (T6).'],
+      src: 'PESTEL, slide 10 (2.4 retire per new worker); 2025 URD (upskilling 31%, young people trained 1.4M).' }];
+  /* Harvey balls 0–4: direct impact by 2030, in the order of MEAS. Group assessment; a blind second rating (another model) matched 92 of 98 cells within one step,
+     the six that differed more were revised (SP3 on access 4 → 2: two pilots cannot add 33M people by 2030) */
+  const HB = { SP1: [4, 4, 2, 1, 1, 2, 1, 4, 0, 0, 0, 2, 0, 0], SP2: [2, 3, 3, 4, 4, 4, 2, 1, 3, 1, 1, 4, 0, 4], SP3: [0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 2, 1, 2, 1],
+    E1: [2, 2, 2, 3, 4, 2, 1, 0, 2, 2, 1, 2, 0, 3], E2: [2, 2, 1, 3, 3, 3, 4, 2, 1, 2, 0, 2, 1, 1], E3: [2, 3, 1, 0, 0, 0, 0, 3, 0, 0, 0, 1, 0, 2],
+    E4: [3, 2, 2, 2, 3, 2, 1, 2, 4, 1, 2, 2, 2, 1], E5: [1, 1, 0, 1, 2, 1, 0, 0, 3, 4, 4, 1, 1, 0] };
+  const P7 = PRI.filter(d => !d.added), colMax = rows => MEAS.map((_, c) => Math.max(...rows.map(d => HB[d.c][c])));
+  const GAPS = colMax(P7).map((v, c) => v < 3 ? c : -1).filter(c => c >= 0);
+  console.assert(SWALL.length === 17 && SWALL.every(s => PRI.some(d => d.link.includes(s[0]))), 'every finding feeds a priority');
+  console.assert(SWALL.filter(s => !PRI.some(d => d.k === 'SP' && d.link.includes(s[0]))).map(s => s[0]).join() === 'T6', 'only T6 is left to the review (E5)');
+  console.assert(P7.filter(d => d.c !== 'SP3').every(d => Math.max(...HB[d.c]) >= 3), 'no H1/H2 priority to remove: each has at least a ¾ ball (SP3, an H3 option, is judged at its stage gate)');
+  console.assert(GAPS.join() === '9,10,12' && colMax(PRI).map((v, c) => v < 3 ? c : -1).filter(c => c >= 0).join() === '12', 'gaps: learning & growth (closed by E5) and energy access (left to the company programme)', GAPS);
+  console.assert(PRI.map(d => d.dec[0]).join() === 'Modify,Modify,Retain,Modify,Retain,Modify,Retain,New', 'decisions as on the review slide');
+  console.assert(PRI.every(d => HB[d.c].length === MEAS.length), 'matrix complete');
+  const hzTxt = d => { const m = Object.keys(d.hz).filter(h => d.hz[h] === 'm'), a = Object.keys(d.hz).filter(h => d.hz[h] === 'a');
+    return (m.length > 1 ? 'Horizons ' + m.join(', ') : 'Horizon ' + m[0]) + (a.length ? ', also ' + a.join(', ') : ''); };
+  const decTxt = { Retain: 'retained in review', Modify: 'modified in review', New: 'added in review' };
+  /* the new slides go in before the appendix: findings → map → one-pagers SP1–E4 → impact → review → E5 */
+  const ORDER = [['sw'], ['map'], ...P7.map(d => ['op', d]), ['hb'], ['rv'], ['op', PRI[7]]];
+  const NEWS = ORDER.map(([t, d]) => t === 'sw' ? ['From analysis to priorities', 'Which findings does<br>each priority <i>answer</i>?', 'Twelve findings from part 1 and five added from our own slides; <b>each feeds a strategic priority, except the labour shortage, which the review answers.</b>', 'Source: the review in slides 2–17. Slide numbers in the detail below. “Added”: not in the first pass of part 1; T3 made concrete.', 'From analysis to priorities']
+    : t === 'map' ? ['Priorities on three horizons', 'Where does each<br>priority sit on the<br><i>three horizons</i>?', 'One strategic priority per horizon and four enabling priorities underneath: <b>E2 and E4 carry all three horizons.</b>', 'Framework: three horizons (session on priorities). Enabling priorities built from the four capabilities of the operating model, slide 14. ● main horizon, ○ also supports; key results from the one-pagers, slides 21–27.', 'Priorities on three horizons']
+    : t === 'hb' ? ['Impact on the measures of success', 'How much does<br>each priority move<br>the <i>targets</i>?', 'Vision, mission and level-of-ambition targets against the priorities: <b>without E5 nobody drives learning &amp; growth, and energy access waits for SP3 to scale.</b>', 'Group assessment of direct impact by 2030 (0 = none, 4 = main driver). Green: strongest push of the seven; copper: no push above ½. Targets: slides 2, 7–8 (ROCE range: long term); installed base, net price and partners: group proposals.', 'Impact on the measures of success']
+    : t === 'rv' ? ['Review of the priorities', 'Which priorities<br>do we keep, change<br>or <i>add</i>?', 'Three retained, four modified, none removed, <b>one added: skills, the gap the matrix shows.</b>', 'Criteria: remove an H1 or H2 priority with no ¾ ball (an H3 option is judged at its stage gate); add one where measures have no ¾ ball and no company programme behind them. Impact matrix, slide 28.', 'Review of the priorities']
+    : [`${d.k === 'SP' ? 'Strategic' : 'Enabling'} priority · ${hzTxt(d)} · ${decTxt[d.dec[0]]}`, d.h, d.desc, 'Company = Schneider Electric’s target; Group = our proposal. Sources: ' + d.src, d.nav]);
+  NEWS.forEach(([kk, h, lead, src], k) => { const s = document.createElement('section'); s.className = 'pan';
+    s.innerHTML = `<div class="meta">Schneider Electric<span>${kk}</span></div><img class="lg" src="media/logo-white.svg" alt=""><h1 class="s">${h}</h1><p class="lead a" data-t="200">${lead}</p><div class="src a" data-t="2400"><span>${src}</span><span>${19 + k}</span></div>`;
+    ring.insertBefore(s, $('#p18')); });
+  const pans = $$('.pan');
+  const NAMES = ['Schneider Electric', 'Who is Schneider', 'Where we compete', 'An industry that creates value', 'Best balance, highest return', 'Competitive advantage', 'Vision & mission', 'Level of ambition', 'Five forces',
+    'PESTEL', 'Market matrix', 'Headlines from the future', 'Value chain', 'Operating model', 'Resources & competences', 'Strategic importance × strength', 'Strengths & weaknesses', 'Conclusion', ...NEWS.map(n => n[4]), 'Appendix'];
+  const svgIn = p => { const s = mk('svg', { class: 'g', viewBox: '0 0 1920 1080', 'aria-hidden': 'true' }); p.appendChild(s); return s; };
+
+  /* ---------------- dots (shared by slides 2, 3, 9) ---------------- */
+  const GX = 1582, GY = 686, GAP = 16.5;
+  const makeDots = box => [...Array(100)].map((_, k) => { const d = el('dt', '', '<i></i>', box); d._g = [GX + Math.floor(k / 10) * GAP, GY + (k % 10) * GAP]; return d; });
+  const put = (d, [x, y], o = 1) => { d.style.transform = `translate(${x}px,${y}px)`; d.style.opacity = o; };
+  const cls = (d, c) => { d.className = 'dt' + (c ? ' ' + c : ''); };
+
+  /* ---------------- slide 2: cables + dots ---------------- */
+  const ARENAS = [['Electrical distribution', 'Square D, Acti9, PrismaSeT'], ['Buildings & homes', 'EcoStruxure Building, Wiser'], ['Grid & utilities', 'EcoStruxure ADMS, RM AirSeT'],
+    ['Data centres', 'APC, Galaxy UPS, Motivair'], ['Industrial automation', 'Modicon, Altivar'], ['Industrial software', 'AVEVA'], ['E-mobility', 'EVlink']];
+  const HOT = 3, SX = 900, SY = 760, TX = 1150, DY = 60;
+  const rows = ARENAS.map(([name, brands], i) => {
+    const y = SY + (i - HOT) * DY, hot = i === HOT, g = mk('g', { class: 'row' + (hot ? ' hot' : '') }, $('#rows'));
+    const d = hot ? `M${SX},${SY} L1566,${SY}` : `M${SX},${SY} C${SX + 140},${SY} ${TX - 140},${y} ${TX},${y}`;
+    mk('path', { class: 'cable', d, pathLength: 100 }, g); mk('path', { class: 'pulse', d, pathLength: 100, style: `animation-delay:${-i * 0.37}s` }, g);
+    mk('circle', { class: 'term', cx: TX, cy: y, r: 7 }, g);
+    mk('text', { class: 'lbl', x: TX + 22, y: hot ? y - 12 : y - 2 }, g).textContent = name;
+    mk('text', { class: 'brd', x: TX + 22, y: hot ? y + 27 : y + 20 }, g).textContent = brands;
+    return g; });
+  const d2 = makeDots($('#d2')), d9 = makeDots($('#d9'));
+
+  /* ---------------- card helpers for the three charts taken from the Pirelli deck (slides 13–15), drawn in this deck's dark look ---------------- */
+  const kc = (p, x, y, w, h, t, cls = '') => el('kc a ' + cls, `left:${x}px;top:${y}px;width:${w}px;height:${h}px`, '', p, t);
+  const kh = (c, h, side = '') => el('kh', '', h + (side ? `<span>${side}</span>` : ''), c);
+  const tx = (p, css, html, t, cls = '') => el('t ' + cls, css, html, p, t);
+
+  /* ---------------- slide 3: value curve (after Pirelli 13: where it competes, and where it doesn't) ---------------- */
+  const COLS = ['Electrical distribution', 'Data centres', 'Buildings & homes', 'Industrial automation', 'Industrial software', 'Grid & utilities', 'E-mobility'];
+  const M = [['Schneider Electric', [2, 2, 2, 2, 2, 2, 2]], ['Siemens', [2, 2, 2, 2, 2, 2, 1]], ['Eaton', [2, 2, 1, 1, 0, 2, 1]], ['Legrand', [2, 2, 2, 0, 0, 0, 1]],
+    ['Honeywell', [0, 1, 2, 2, 1, 0, 0]], ['Hitachi Energy', [1, 1, 0, 0, 0, 2, 0]], ['Johnson Controls', [0, 2, 2, 0, 0, 0, 0]], ['Rockwell Automation', [0, 0, 0, 2, 2, 0, 0]],
+    ['Emerson / AspenTech', [0, 0, 0, 2, 2, 0, 0]], ['Vertiv', [0, 2, 0, 0, 0, 0, 0]], ['GE Vernova', [0, 0, 0, 0, 0, 2, 0]]];      // 2 core, 1 partial, 0 none
+  const RIVALS = COLS.map((_, c) => M.slice(1).filter(r => r[1][c] > 0).length);
+  console.assert(RIVALS.join() === '4,7,5,5,4,4,3', 'rival counts differ from the approved deck', RIVALS);
+  { const p = pans[2];
+    const L = kc(p, 96, 456, 520, 548, 350); kh(L, 'Arenas covered', 'solid core, striped partial');
+    M.forEach(([n, v], i) => { const y = 78 + i * 32, k = v.filter(x => x > 0).length, se = i === 0, t = 500 + i * 70;
+      tx(L, `left:28px;top:${y - 9}px;font:${se ? 600 : 400} 18px/1 var(--f);color:${se ? 'var(--se)' : 'var(--mid)'}`, n, t, 'fd');
+      const co = v.filter(x => x === 2).length, pa = k - co, col = se ? 'var(--se)' : i === 1 ? 'var(--white)' : 'rgba(255,255,255,.32)', rgb = se ? '61,205,88' : i === 1 ? '244,246,245' : '255,255,255';
+      if (co) el('gx', `position:absolute;left:236px;top:${y - 6}px;height:12px;border-radius:3px;width:${co / 7 * 200 - (pa ? 2 : 0)}px;background:${col}`, '', L, t + 60);
+      if (pa) el('gx', `position:absolute;left:${236 + co / 7 * 200}px;top:${y - 6}px;height:12px;border-radius:3px;width:${pa / 7 * 200}px;background:repeating-linear-gradient(135deg,rgba(${rgb},.55) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px rgba(${rgb},.45)`, '', L, t + 60);
+      tx(L, `left:${248 + k / 7 * 200}px;top:${y - 9}px;font:600 18px/1 var(--f);color:${se ? 'var(--se)' : 'var(--white)'}`, co + (pa ? `<span style="font-weight:400;color:var(--grey)"> + ${pa}</span>` : '') + '<span style="font-weight:400;color:var(--grey)">/7</span>', t + 500, 'fd'); });
+    el('hr fd', 'position:absolute;left:28px;right:28px;top:440px', '', L, 1400);
+    tx(L, 'left:28px;top:458px;font:600 46px/1 var(--f);letter-spacing:-.035em;color:var(--se)', '1 of 10', 1500, 'a');
+    tx(L, 'left:212px;top:462px;width:280px;white-space:normal;font:400 18px/1.3 var(--f);color:var(--grey)', 'rivals is in all seven arenas, and only partly in e-mobility: <b style="color:var(--white);font-weight:500">Siemens</b>', 1600, 'a');
+    const R = kc(p, 640, 456, 1184, 380, 450); kh(R, 'Presence by arena');
+    const s = svgIn(p);                                                               // drawn after the card, so the lines sit on top of it
+    const AX = c => 640 + 210 + c * 148, LY = v => 456 + 290 - v * 92;
+    tx(R, 'right:28px;top:22px;display:flex;gap:22px;font:400 16px/1 var(--f);color:var(--grey)', [['Schneider', 'var(--se)', 4], ['Siemens', 'var(--white)', 3], ['Eaton', 'rgba(255,255,255,.5)', 3], ['Legrand', 'var(--copper)', 3]]
+      .map(([n, c, w]) => `<span style="display:flex;align-items:center;gap:8px"><i style="display:inline-block;width:24px;height:${w}px;border-radius:2px;background:${c}"></i>${n}</span>`).join(''), 600, 'fd');
+    [['Core', 2], ['Partial', 1], ['None', 0]].forEach(([l, v]) => { el('hr fd', `left:${AX(0) - 40}px;width:${AX(6) - AX(0) + 80}px;top:${LY(v)}px`, '', p, 600);
+      tx(p, `left:${AX(0) - 60}px;top:${LY(v) - 9}px;transform:translateX(-100%);font:400 16px/1 var(--f);color:var(--grey)`, l, 600, 'fd'); });
+    COLS.forEach((c, i) => tx(p, `left:${AX(i)}px;top:${LY(0) + 18}px;width:130px;margin-left:-65px;text-align:center;white-space:normal;font:${i === 1 ? 600 : 400} 15px/1.2 var(--f);color:${i === 1 ? 'var(--se)' : 'var(--grey)'}`, c.replace('&', '&amp;'), 650, 'fd'));
+    [[3, 'var(--copper)', 3, 0], [2, 'rgba(255,255,255,.5)', 3, 0], [1, '#F4F6F5', 3, 4], [0, '#3DCD58', 4.5, -5]].forEach(([r, col, w, off], q) => {
+      const pts = M[r][1].map((v, c) => `${AX(c)},${LY(v) + off}`).join(' L'), t = 900 + q * 350;
+      mk('path', { class: 'dw', d: 'M' + pts, pathLength: 100, fill: 'none', stroke: col, 'stroke-width': w, 'stroke-linejoin': 'round', 'data-t': t }, s);
+      M[r][1].forEach((v, c) => mk('circle', { cx: AX(c), cy: LY(v) + off, r: r === 0 ? 7 : 5.5, fill: col, class: 'fd', 'data-t': t + 400 + c * 40 }, s)); });
+    [['Leads', 'Full spectrum: core in all seven arenas. Only Siemens comes close, six core and one partial.', 'g'],
+      ['Most crowded', 'Data centres draw 7 of 10 rivals, including pure-play Vertiv: the #1 market is also the most contested.', ''],
+      ['Software', '8% of revenue in software: through AVEVA, Schneider also meets Siemens, Rockwell and Emerson.', 'd']].forEach(([h, t, k], i) => {
+      const b = kc(p, 640 + i * 400, 856, 384, 148, 2600 + i * 200, k);
+      tx(b, `left:24px;top:22px;font:600 15px/1 var(--f);letter-spacing:.18em;text-transform:uppercase;color:${k === 'g' ? 'var(--se)' : 'var(--grey)'}`, h, 2650 + i * 200);
+      tx(b, 'left:24px;top:50px;width:336px;white-space:normal;font:400 18px/1.38 var(--f);color:var(--mid)', t, 2700 + i * 200, 'a'); }); }
+
+  /* ---------------- slide 4: value spread by industry ---------------- */
+  { const p = pans[3], s = svgIn(p), Z = 620, U = 24, X = v => Z + v * U;
+    const IND = [['Software', 20.0], ['Machinery', 16.7], ['Engineering', 16.6], ['Building materials', 12.4], ['Electrical equipment', 6.6, 'se'],
+      ['Total market', 2.0, 'ref'], ['Utility', 1.6], ['Power', -1.0], ['Green & renewable energy', -2.6]];
+    [0, 5, 10, 15, 20].forEach((v, i) => { el('gl fd', `left:${X(v)}px;top:526px;height:392px;${v === 0 ? 'background:rgba(255,255,255,.35)' : ''}`, '', p, 600);
+      el('t ax fd', `left:${X(v)}px;top:930px;transform:translateX(-50%)`, v ? '+' + v : '0', p, 600); });
+    el('t ax fd', `left:${Z - 14}px;top:962px;transform:translateX(-100%)`, '← destroys value', p, 700);
+    el('t ax fd', `left:${Z + 14}px;top:962px`, 'creates value →', p, 700);
+    IND.forEach(([n, v, k], i) => { const y = 548 + i * 45, neg = v < 0, hot = k === 'se';
+      el('t a', `left:110px;width:430px;text-align:right;top:${y - 12}px;font:${hot ? 600 : 400} 21px/1 var(--f);color:${hot ? 'var(--se)' : k === 'ref' ? 'var(--white)' : 'var(--mid)'}`, n.replace('&', '&amp;'), p, 650 + i * 50);
+      el('ib gx' + (neg ? ' neg' : '') + (hot ? ' se' : k === 'ref' ? ' ref' : neg ? ' neg' : ''), `left:${neg ? X(v) : Z}px;top:${y}px;width:${Math.abs(v) * U}px`, '', p, 1000 + i * 110);
+      el('t vl fd', `top:${y - 10}px;left:${(neg ? Z : X(v)) + 12}px;${neg ? 'color:var(--copper)' : ''};${hot ? 'color:var(--se);font-weight:600' : ''}`,
+        (v > 0 ? '+' : '−') + Math.abs(v).toFixed(1), p, 1700 + i * 110); }); }
+
+  /* ---------------- slide 5: margin × turnover ---------------- */
+  { const p = pans[4], s = svgIn(p), PX = t => 250 + (t - 0.75) * 1229, PY = m => 940 - (m - 9.5) * 76;
+    [0.8, 1.0, 1.2, 1.4].forEach(t => { el('gl fd', `left:${PX(t)}px;top:560px;height:380px`, '', p, 600); el('t ax fd', `left:${PX(t)}px;top:954px;transform:translateX(-50%)`, t.toFixed(1) + '×', p, 600); });
+    [10, 12, 14].forEach(m => { el('hr fd', `left:250px;width:860px;top:${PY(m)}px`, '', p, 600); el('t ax fd', `left:236px;top:${PY(m) - 9}px;transform:translateX(-100%)`, m + '%', p, 600); });
+    el('t ax fd', 'left:250px;top:978px;color:var(--grey)', 'Capital turnover →&nbsp; revenue ÷ (equity + net debt)', p, 700);
+    el('t ax fd', 'left:130px;top:532px;color:var(--grey)', 'Margin ↑&nbsp; NOPAT ÷ revenue', p, 700);
+    [[11.6, 'rgba(255,255,255,.35)'], [13.7, 'rgba(255,255,255,.35)'], [16.4, '#3DCD58']].forEach(([R, col], i) => {
+      const pts = []; for (let t = 0.75; t <= 1.4501; t += 0.005) { const m = R / t; if (m >= 9.5 && m <= 14.5) pts.push(`${PX(t).toFixed(1)},${PY(m).toFixed(1)}`); }
+      const path = mk('path', { class: 'dw', d: 'M' + pts.join(' L'), pathLength: 100, fill: 'none', stroke: col, 'stroke-width': i === 2 ? 3 : 2, 'stroke-dasharray': '100', 'data-t': 900 + i * 300 }, s);
+      const tl = [1.04, 1.16, 1.40][i]; el('t fd', `left:${PX(tl) + 10}px;top:${PY(R / tl) - 34}px;font:500 18px/1 var(--f);color:${i === 2 ? 'var(--se)' : 'var(--grey)'}`, 'ROIC ' + R + '%', p, 1500 + i * 300); });
+    [['Legrand', 0.82, 14.1, 'high margin, slow capital', ''], ['Rockwell', 1.30, 10.5, 'fast capital, thin margin', ''], ['Schneider', 1.28, 12.8, '12.8% × 1.28× = 16.4%', 'se']].forEach(([n, t, m, d, k], i) => {
+      const x = PX(t), y = PY(m);
+      el('pt ry ' + k, `left:${x}px;top:${y}px;--d:${940 - y}px`, '<i></i>', p, 2300 + i * 350);
+      el('pt fd ' + k, `left:${x}px;top:${y}px`, `<b>${n}</b><span>${d}</span>`, p, 2900 + i * 350); }); }
+
+  /* ---------------- slide 6: return vs cost, and without goodwill ---------------- */
+  { const p = pans[5], X = v => 360 + v * 36, X2 = v => 360 + v * 14;
+    [0, 5, 10, 15, 20].forEach(v => { el('gl fd', `left:${X(v)}px;top:532px;height:246px`, '', p, 600); el('t ax fd', `left:${X(v)}px;top:786px;transform:translateX(-50%)`, v + '%', p, 600); });
+    [['Schneider', 8.3, 16.4, 'se'], ['Rockwell', 8.7, 13.7, ''], ['Legrand', 7.3, 11.6, '']].forEach(([n, w, r, k], i) => { const y = 572 + i * 82, t0 = 800 + i * 350;
+      el('t nm2 a', `left:130px;top:${y - 14}px;${k ? 'color:var(--se);font-weight:600' : ''}`, n, p, 650 + i * 80);
+      el('ln gx ' + k, `left:${X(w)}px;top:${y}px;width:${(r - w) * 36}px`, '', p, t0 + 200);
+      el('wc fd', `left:${X(w)}px;top:${y}px`, '', p, t0);
+      el('rc mv ' + k, `left:${X(r)}px;top:${y}px;--d:${-(r - w) * 36}px`, '', p, t0 + 200);
+      el('t ax fd', `left:${X(w) - 18}px;top:${y - 9}px;transform:translateX(-100%);color:var(--grey)`, w.toFixed(1) + '%', p, t0);
+      el('t vl fd', `left:${X(r) + 22}px;top:${y - 10}px;${k ? 'color:var(--white);font-weight:600' : ''}`, r.toFixed(1) + '%', p, t0 + 1100);
+      el('t fd', `left:${(X(w) + X(r)) / 2}px;top:${y - 40}px;transform:translateX(-50%);font:600 19px/1 var(--f);color:${k ? 'var(--se)' : 'var(--mid)'}`, '+' + (r - w).toFixed(1) + ' pts', p, t0 + 1200); });
+    el('hr fd', 'left:124px;width:1044px;top:820px', '', p, 2200);
+    el('t fd', 'left:130px;top:838px;font:500 20px/1 var(--f);color:var(--mid)', 'Without goodwill: Schneider ROCE vs industry ROIC', p, 2200);
+    [['Schneider', 47.5, 'se', '≈47%'], ['Electrical equipment', 15.6, '', '15.6%']].forEach(([n, v, k, lb], i) => { const y = 902 + i * 52;
+      el('t a', `left:130px;top:${y - 12}px;font:${k ? 600 : 400} 21px/1 var(--f);color:${k ? 'var(--se)' : 'var(--mid)'}`, n, p, 2300 + i * 100);
+      el('ib gx ' + k, `left:${X2(0)}px;top:${y}px;width:${v * 14}px`, '', p, 2400 + i * 150);
+      el('t vl fd', `left:${X2(v) + 12}px;top:${y - 10}px;${k ? 'color:var(--white);font-weight:600' : ''}`, lb, p, 3100 + i * 150); }); }
+
+  /* ---------------- slide 7: progress to 2030 ---------------- */
+  { const p = pans[6], L = 1080, W = 440;
+    const KPI = [['Vision KPIs'], ['Climate', 'customer CO₂ saved & avoided', 61, '913 Mt → 1.5 Gt', 'se'], ['Access', 'people with energy access', 67, '67M → 100M', 'se'], ['Skills', 'young people trained', 47, '1.4M → 3M', ''], ['Circularity', 'offers with circular design', 27, '27% → 100%', ''],
+      ['Mission KPIs'], ['Efficiency', 'energy saved or electrified', 9, '129 → 1,500 TWh', 'cu'], ['Digital', 'software with carbon insights', 29, '29% → 100%', ''], ['People', 'employees upskilled each year', 31, '31% → 100%', '']];
+    let y = 540, n = 0;
+    KPI.forEach(r => { if (r.length === 1) { if (n) y += 16; el('t fd', `left:748px;top:${y - 4}px;font:500 17px/1 var(--f);color:var(--dim)`, r[0], p, 600); y += 34; return; }
+      const [k, d, v, val, c] = r, t = 700 + n * 120; n++; y += 22;
+      el('t a', `left:748px;top:${y - 24}px;font:500 21px/1.15 var(--f);color:var(--white)`, k + `<span style="display:block;font:400 16px/1.2 var(--f);color:var(--grey)">${d.replace('&', '&amp;')}</span>`, p, t);
+      el('tr2 fd', `left:${L}px;top:${y}px;width:${W}px`, `<div class="tf gx ${c}" data-t="${t + 500}" style="width:${v}%"></div>`, p, t);
+      el('t fd', `left:${L + W + 22}px;top:${y - 13}px;font:600 26px/1 var(--f);letter-spacing:-.02em;color:${c === 'se' ? 'var(--se)' : c === 'cu' ? 'var(--copper)' : 'var(--white)'}`, v + '%', p, t + 900).dataset.to = v;
+      el('t sm fd', `right:124px;top:${y - 11}px;font-size:17px`, val, p, t + 900);
+      y += 30; });
+    $$('[data-to]', p).forEach(e => { e.dataset.fmt = '{}%'; e.dataset.dec = 0; });
+    el('gl fd', `left:${L + W / 2}px;top:548px;height:${y - 556}px;width:0;border-left:1.5px dashed rgba(255,255,255,.35);background:none`, '', p, 1800);
+    el('t ax fd', `left:${L + W / 2}px;top:${y - 2}px;transform:translateX(-50%)`, 'halfway', p, 1800); }
+
+  /* ---------------- slide 8: where 2025 lands against the ambition ---------------- */
+  { const p = pans[7], T0 = 1000, TW = 400;
+    [['Measure', 130], ['FY2025', 540], ['2030 ambition', 760], ['Where it lands', T0], ['What it shows', 1470]].forEach(([h, x]) => el('t ax fd', `left:${x}px;top:534px`, h, p, 600));
+    const R = [['Organic revenue growth', 'without currency or acquisitions', 8.9, '+{}%', 1, '+7–10%', 'a year', 0, 15, [7, 10], null, 'How fast the business grows. 2025 sits near the top of the range.'],
+      ['Adj. EBITA margin', 'adjusted operating margin', 18.7, '{}%', 1, '≈21.2%', '+2.5 pts organic', 17, 23, null, 21.2, '€18.70 earned per €100 of sales. <b style="color:var(--se);font-weight:500">The real step of the plan.</b>'],
+      ['Return on capital employed', 'ROCE, as reported', 15.1, '{}%', 1, '15–20%', 'long term', 10, 25, [15, 20], null, 'Earnings after tax on capital employed. Already inside the range.']];
+    R.forEach(([m, sub, v, fmt, dec, amb, asub, lo, hi, band, tick, txt], i) => { const y = 640 + i * 128, P = x => T0 + (x - lo) / (hi - lo) * TW, t = 700 + i * 450;
+      if (i) el('hr fd', `left:124px;width:1672px;top:${y - 64}px`, '', p, 600);
+      el('t a', `left:130px;top:${y - 28}px;font:500 25px/1.2 var(--f);color:var(--white)`, m + `<span style="display:block;font:400 18px/1.3 var(--f);color:var(--grey)">${sub}</span>`, p, t);
+      const n = el('t big a', `left:540px;top:${y - 24}px${i === 1 ? ';color:var(--se)' : ''}`, fmt.replace('{}', v.toFixed(dec)), p, t + 100); Object.assign(n.dataset, { to: v, fmt, dec });
+      el('t a', `left:760px;top:${y - 26}px;font:500 34px/1 var(--f);letter-spacing:-.02em;color:var(--mid)`, amb + `<span style="display:block;margin-top:8px;font:400 18px/1 var(--f);letter-spacing:0;color:var(--grey)">${asub}</span>`, p, t + 200);
+      el('trk fd', `left:${T0}px;top:${y}px;width:${TW}px`, '', p, t + 200);
+      if (band) el('bnd fd', `left:${P(band[0])}px;top:${y}px;width:${P(band[1]) - P(band[0])}px`, '', p, t + 400);
+      if (tick) { el('tck fd', `left:${P(tick)}px;top:${y}px`, '', p, t + 400);
+        el('arr gx', `left:${P(v) + 14}px;top:${y - 26}px;width:${P(tick) - P(v) - 14}px`, '', p, t + 1300);
+        el('t fd', `left:${(P(v) + P(tick)) / 2}px;top:${y - 52}px;transform:translateX(-50%);font:600 18px/1 var(--f);color:var(--copper)`, '+2.5 pts', p, t + 1700); }
+      el('mk mv', `left:${P(v)}px;top:${y}px;--d:${T0 - P(v)}px`, '', p, t + 600);
+      el('t ax fd', `left:${T0}px;top:${y + 22}px`, lo + '%', p, t + 200); el('t ax fd', `left:${T0 + TW}px;top:${y + 22}px;transform:translateX(-100%)`, hi + '%', p, t + 200);
+      el('t sm a', `left:1470px;top:${y - 26}px;width:330px;white-space:normal;font-size:19px`, txt, p, t + 900); }); }
+
+  /* ---------------- slide 9: five forces, 100 dots = 100% of the weight ---------------- */
+  const F = [['Competitive rivalry', 35, 3, '10 main rivals, 7 of them in data centres; Siemens in all 7 arenas. M&amp;A race: Cognite $3.1bn, AiDASH $350m.'],
+    ['Supplier power', 20, 2, '€19bn bought a year from 50,000+ suppliers; raw materials and tariffs cost €255m in 2025. 90% made in region limits it.'],
+    ['Buyer power', 20, 2, 'Data centres are 30% of orders, so a few buyers weigh heavily; but the US is 15% short of transformers in 2026.'],
+    ['Threat of new entrants', 15, 1, 'Certifications, R&amp;D and the installed base keep newcomers out; watch Chinese automation, US imports ×4 since 2023.'],
+    ['Threat of substitutes', 10, 1, 'No alternative to switchgear or UPS; software complements hardware. Watch new 800V DC architectures.']];
+  console.assert(F.reduce((a, f) => a + f[1], 0) === 100, 'five forces weights must total 100');
+  const t9 = []; { const p = pans[8]; let k = 0;
+    F.forEach(([n, w, lv, why], i) => { const y = 566 + i * 96, t = 1500 + i * 260, word = ['', 'Low', 'Medium', 'High'][lv];
+      if (i) el('hr fd', `left:124px;width:1672px;top:${y - 48}px`, '', p, 600);
+      for (let j = 0; j < w; j++, k++) t9[k] = { p: [140 + Math.floor(j / 2) * 15, y - 8 + (j % 2) * 16], c: lv === 3 ? 'lit' : lv === 2 ? 'wh' : 'lo', i };
+      const pc = el('t big a', `left:430px;top:${y - 23}px;${lv === 3 ? 'color:var(--se)' : ''}`, w + '%', p, t); Object.assign(pc.dataset, { to: w, fmt: '{}%', dec: 0 });
+      el('t nm2 a', `left:580px;top:${y - 13}px;font-size:24px`, n, p, t + 60);
+      el('lvl a' + (lv === 3 ? ' hi' : ''), `left:920px;top:${y - 11}px`, [1, 2, 3].map(q => `<i class="${q <= lv ? 'on' : ''}"></i>`).join('') + `<em>${word}</em>`, p, t + 140);
+      el('t sm a', `left:1150px;top:${y - 26}px;width:640px;white-space:normal;font-size:19px`, why, p, t + 200); }); }
+  const scatter = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7), sc9 = d9.map(() => [160 + scatter() * 1620, 560 + scatter() * 420]);
+
+  /* ---------------- slide 10: PESTEL, 100 dots = 100% of the weight ---------------- */
+  const PE = [['Political', 15, 'Mixed', [['Incentives fund electrification (IRA, EU building rules)', 1, 0], ['Slow permits, CBAM, export rules', 0, 1]]],
+    ['Economic', 30, 'Highly positive', [['AI data-centre capex super-cycle', 1, 0], ['Power demand +3.6% a year, grid investment rising', 1, 0], ['High interest rates and commodity inflation', 0, 1]]],
+    ['Social', 10, 'Positive', [['Skilled-labour shortage: 2.4 retire per new worker', 1, 1], ['Urbanisation, smart homes and offices', 1, 0]]],
+    ['Technological', 25, 'Highly positive', [['Dense compute and liquid cooling: systems beat parts', 1, 1], ['Grid automation, AI analytics, microgrids', 1, 0]]],
+    ['Environmental', 10, 'Positive', [['SF₆ phase-out (24,300× CO₂): early movers gain', 1, 1], ['Climate resilience and circular design demand', 1, 1]]],
+    ['Legal', 10, 'Mixed', [['REACH, RoHS, PFAS, Ecodesign compliance', 0, 1], ['CSRD and EU Taxonomy reward transparent players', 1, 1]]]];
+  console.assert(PE.reduce((a, f) => a + f[1], 0) === 100, 'PESTEL weights must total 100');
+  console.assert(PE.every(f => f[3].some(d => d[2])), 'every PESTEL factor carries a cost driver (the lead says so)');
+  const d10 = makeDots($('#d10')), t10 = [], sc10 = d10.map(() => [160 + scatter() * 1620, 560 + scatter() * 420]);
+  { const p = pans[9]; let y = 548, k = 0;
+    [['Weight', 140], ['Factor', 480], ['What drives it', 760], ['Price', 1462], ['Cost', 1548], ['Net', 1650]].forEach(([h, x]) => el('t ax fd', `left:${x}px;top:526px`, h, p, 600));
+    PE.forEach(([n, w, net, drv], i) => { const h = drv.length * 26 + 16, c = y + 8 + h / 2, t = 900 + i * 220, col = net === 'Highly positive' ? 'lit' : net === 'Positive' ? 'wh' : 'lo';
+      if (i) el('hr fd', `left:124px;width:1672px;top:${y + 4}px`, '', p, 600);
+      for (let j = 0; j < w; j++, k++) t10[k] = { p: [140 + Math.floor(j / 2) * 15, c - 8 + (j % 2) * 16], c: col };
+      const pc = el('t a', `left:380px;top:${c - 17}px;font:600 34px/1 var(--f);letter-spacing:-.03em;${col === 'lit' ? 'color:var(--se)' : ''}`, w + '%', p, t); Object.assign(pc.dataset, { to: w, fmt: '{}%', dec: 0 });
+      el('t nm2 a', `left:480px;top:${c - 13}px`, n, p, t + 60);
+      drv.forEach(([d, pr, co], j) => { const ly = c - drv.length * 13 + j * 26 + 13;
+        el('t a', `left:760px;top:${ly - 11}px;font:400 19px/1.15 var(--f);color:var(--mid)`, d, p, t + 120 + j * 60);
+        el('t fd', `left:1470px;top:${ly - 12}px;font:600 21px/1 var(--f);color:${pr ? 'var(--se)' : 'var(--dim)'}`, pr ? '↑' : '–', p, t + 320 + j * 60);
+        el('t fd', `left:1556px;top:${ly - 12}px;font:600 21px/1 var(--f);color:${co ? 'var(--copper)' : 'var(--dim)'}`, co ? '↑' : '–', p, t + 320 + j * 60); });
+      el('t a', `left:1650px;top:${c - 11}px;font:500 20px/1 var(--f);color:${col === 'lit' ? 'var(--se)' : col === 'wh' ? 'var(--white)' : 'var(--grey)'}`, net, p, t + 520);
+      y += h; }); }
+
+  /* ---------------- slide 11: market matrix ---------------- */
+  const MM = [[['Sell more to data centres', '30% of orders, >10% a year', 'g'], ['Liquid cooling, same clients', 'Motivair acquisition', 'g'], ['AI software for factories', 'Cognite, $3.1bn (2026)', 'b']],
+    [['Equip the new AI factories', 'designs aligned with NVIDIA', 'g'], ['Grid software for utilities', 'AiDASH, $350m (2026)', 'b'], ['AI model for energy operators', 'first model, CMD 2025', 'o']],
+    [['EV chargers for homes', 'EVlink, Wiser', 'o'], ['Home batteries and storage', 'eStar JV with StarCharge', 'o'], ['Not pursued', '€1–1.5bn of sales to divest', 'n']]];
+  const MROW = [['Today’s customers', 'data centres, buildings, industry'], ['Close customers', 'AI factories, power utilities'], ['New customers', 'European homes']], MCOL = ['Today’s offers', 'Close offers', 'New offers'];
+  { const p = pans[10], X0 = 400, CW = 318, Y0 = 556, CH = 128;
+    MCOL.forEach((h, j) => el('t ax fd', `left:${X0 + j * CW + 4}px;top:526px`, h, p, 600));
+    MROW.forEach(([h, d], i) => el('t a', `left:124px;top:${Y0 + i * CH + 26}px;width:250px;white-space:normal;font:500 21px/1.2 var(--f);color:var(--white)`, h + `<span style="display:block;margin-top:5px;font:400 17px/1.25 var(--f);color:var(--grey)">${d}</span>`, p, 650 + i * 80));
+    MM.forEach((row, i) => row.forEach(([t, d, s], j) => el('mc a ' + s, `left:${X0 + j * CW}px;top:${Y0 + i * CH}px;width:${CW - 12}px;height:${CH - 12}px`, `<b>${t}</b><span>${d}</span>`, p, 900 + (i + j) * 260)));
+    [['g', 'Growing today'], ['b', 'New bet, acquisition'], ['o', 'Option or not pursued']].forEach(([s, l], i) => el('t sm fd', `left:${X0 + i * 270}px;top:956px;display:flex;align-items:center;gap:10px`, `<i class="mcs ${s}"></i>${l}`, p, 2400));
+    [['Motivair', 'liquid cooling for data centres', 'g'], ['$350m', 'AiDASH, grid software (2026)', 'g'], ['$3.1bn', 'Cognite, industrial AI (2026)', 'g'], ['€1–1.5bn', 'of sales to divest: no unrelated businesses', 'c']].forEach(([n, d, k], i) => {
+      if (i) el('hr fd', `left:1438px;width:358px;top:${530 + i * 112}px`, '', p, 2600);
+      el('t a', `left:1438px;top:${548 + i * 112}px;font:600 40px/1 var(--f);letter-spacing:-.03em;color:${k === 'g' ? 'var(--se)' : 'var(--copper)'}`, n + `<span style="display:block;margin-top:8px;font:400 18px/1.3 var(--f);letter-spacing:0;color:var(--grey)">${d}</span>`, p, 2600 + i * 180); }); }
+
+  /* ---------------- slide 12: five headlines ---------------- */
+  const HL = [['30%', 'AI factories switch to 800V', 'of orders already come from data centres', 1], ['15%', 'The grid runs out of transformers', 'US transformer shortfall in 2026', 1],
+    ['−6%', 'The data-centre boom takes a breath', 'North American capacity under construction, H2 2025', 0], ['−€179m', 'Tariffs outrun the price list', '2025 net price effect on profit', 0], ['×4', 'Cheap Chinese automation goes global', 'US imports from China since 2023', 0]];
+  console.assert(HL.filter(h => h[3]).length === 2, 'two headlines feed volume, three hit price');
+  { const p = pans[11];
+    HL.forEach(([n, h, d, up], i) => { const y = 566 + i * 88, t = 700 + i * 320, c = up ? 'var(--se)' : 'var(--copper)';
+      if (i) el('hr fd', `left:124px;width:1672px;top:${y - 44}px`, '', p, 600);
+      el('t ax a', `left:130px;top:${y - 9}px`, '0' + (i + 1), p, t);
+      el('t big a', `left:200px;top:${y - 23}px;color:${c}`, n, p, t + 80);
+      el('t a', `left:520px;top:${y - 27}px;font:500 25px/1.2 var(--f);color:var(--white)`, h + `<span style="display:block;font:400 18px/1.3 var(--f);color:var(--grey)">${d}</span>`, p, t + 160);
+      el('t ry', `left:1600px;top:${y - 11}px;--d:${up ? 22 : -22}px;font:600 20px/1 var(--f);letter-spacing:.06em;color:${c}`, up ? 'VOLUME ↑' : 'PRICE ↓', p, t + 380); }); }
+
+  /* ---------------- slide 13: value chain cards (after Pirelli 14) ---------------- */
+  const VC = [['Primary activities'], ['Outbound logistics', 3, '#1', 'Gartner supply chain, four years running'], ['Marketing &amp; sales', 3, '~1M', 'partners sell and install it everywhere'], ['Operations', 2, '160+', 'factories, productivity still rising'],
+    ['Inbound logistics', 2, '90%', 'made in the region where it is sold'], ['Service', 0, '~16%', 'of the installed base is serviced'], ['Support activities'], ['Procurement', 2, '€19bn', 'bought a year, co-design with suppliers'],
+    ['Human resources', 2, '81%', 'of staff upskilled in digital and AI'], ['Infrastructure', 2, '4', 'regional hubs serving two businesses'], ['Technology development', 1, '5.9%', 'of sales on R&amp;D, Siemens 8.3%']];
+  const LVL = ['Behind', 'At par', 'Ahead', 'Clear lead'];
+  { const p = pans[12], pri = VC.slice(1, 6), sup = VC.slice(7), W = 331, G = 18;
+    const meter = (c, v, x, y, t) => [0, 1, 2, 3].forEach(q => el('fd', `position:absolute;left:${x + q * 34}px;top:${y}px;width:28px;height:7px;border-radius:4px;background:${q <= v ? (v === 0 ? 'var(--copper)' : v === 3 ? 'var(--se)' : 'var(--white)') : 'rgba(255,255,255,.12)'}`, '', c, t + q * 90));
+    pri.forEach(([a, v, num, txt], i) => { const x = 96 + i * (W + G), t = 450 + i * 220, hot = v === 3, bad = v === 0;
+      el('chev fd' + (hot ? ' on' : bad ? ' bad' : ''), `left:${x}px;top:456px;width:${W + 14}px`, `0${i + 1} · Primary`, p, t);
+      const c = kc(p, x, 518, W, 282, t + 100, hot ? 'hl' : '');
+      tx(c, 'left:22px;top:20px;font:600 22px/1.15 var(--f)', a, t + 100);
+      tx(c, 'left:22px;top:56px', `<span class="chip ${hot ? 'g' : bad ? 'o' : 'n'}">${LVL[v]}</span>`, t + 200, 'fd');
+      meter(c, v, 22, 100, t + 300);
+      const st = el('fd', 'position:absolute;left:14px;right:14px;top:124px;height:144px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--hair)', '', c, t + 400);
+      tx(st, `left:16px;top:16px;font:600 44px/1 var(--f);letter-spacing:-.035em;color:${bad ? 'var(--copper)' : hot ? 'var(--se)' : 'var(--white)'}`, num, t + 500);
+      tx(st, 'left:16px;top:72px;width:266px;white-space:normal;font:400 17px/1.35 var(--f);color:var(--mid)', txt, t + 550, 'a'); });
+    sup.forEach(([a, v, num, txt], i) => { const x = 96 + i * 438, t = 1700 + i * 180, c = kc(p, x, 818, 414, 186, t);
+      tx(c, 'left:22px;top:18px;font:600 15px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--grey)', 'Support · 0' + (i + 1), t);
+      tx(c, 'left:22px;top:42px;font:600 21px/1.15 var(--f)', a, t);
+      tx(c, 'right:20px;top:16px', `<span class="chip n">${LVL[v]}</span>`, t + 100, 'fd');
+      tx(c, 'left:22px;top:82px;font:600 38px/1 var(--f);letter-spacing:-.03em', num, t + 200);
+      tx(c, 'left:22px;top:130px;width:370px;white-space:normal;font:400 17px/1.35 var(--f);color:var(--mid)', txt, t + 250, 'a'); }); }
+
+  /* ---------------- slide 14: operating model as a value network (after Pirelli 15) ---------------- */
+  const OL = [['S', 'Suppliers', '50,000+, co-design with Infineon'], ['L', 'Location', '4 hubs, 160+ factories'], ['O', 'Organisation', '2 businesses, 4 regions'], ['P', 'People', '~160,000 · 350+ AI engineers'], ['T', 'Technology', 'EcoStruxure, ETAP, AVEVA'], ['M', 'Management systems', 'impact score 8.86/10 in pay']];
+  const OC = [['Connected systems that work together', 'SPT'], ['Resilient, regional supply chain', 'SLM'], ['Reach through ~1M partners', 'LOP'], ['Lifecycle services on the installed base', 'LPT']];
+  const OCS = ['CS', 'SC', 'PR', 'LS'];
+  console.assert(OC.reduce((a, c) => a + c[1].length, 0) === 12 && OC.every(c => c[1].length === 3), 'operating model: 12 links, 3 per capability');
+  { const p = pans[13], s = svgIn(p), PROOF = [['8%', 'of revenue in software'], ['90%', 'made where it is sold'], ['100+', 'countries served locally'], ['~16%', 'of the installed base serviced']];
+    const PX0 = 680, PX1 = 1240, PY0 = 456, PY1 = 996, CY = k => 524 + k * 114, CH = 104, ccy = k => CY(k) + CH / 2, TR = [], LV = [], CR = [];
+    tx(p, 'left:1824px;top:420px;transform:translateX(-100%);font:400 15px/1 var(--f);color:var(--dim)', '<span style="color:var(--se)">Green traces:</span> levers that feed three capabilities · click a lever or a capability to follow its links', 3400, 'fd');
+    el('fd', 'position:absolute;left:96px;top:456px;width:1728px;height:548px;background-image:radial-gradient(rgba(255,255,255,.08) 1px,transparent 1.5px);background-size:26px 26px;-webkit-mask-image:radial-gradient(ellipse at 50% 50%,#000 25%,transparent 72%);mask-image:radial-gradient(ellipse at 50% 50%,#000 25%,transparent 72%)', '', p, 200);
+    el('fd', `position:absolute;left:${PX0}px;top:${PY0 + 12}px;width:${PX1 - PX0}px;height:${PY1 - PY0}px;border-radius:20px;background:#040706;box-shadow:0 34px 90px rgba(0,0,0,.65),0 0 140px rgba(61,205,88,.14)`, '', p, 300);
+    const pk = el('a chip14', `position:absolute;left:${PX0}px;top:${PY0}px;width:${PX1 - PX0}px;height:${PY1 - PY0}px;border-radius:20px;background:linear-gradient(160deg,#1A241F,#0C1210 55%);border:1px solid rgba(255,255,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.09)`, '', p, 350);
+    tx(pk, 'left:22px;top:17px', '<img src="media/se-emblem.png" alt="" style="width:30px;height:30px;display:block">', 450, 'fd');
+    tx(pk, 'left:64px;top:22px;font:500 20px/1 var(--f);color:var(--white)', 'Helping customers use energy better', 500, 'fd');
+    tx(pk, 'right:22px;top:25px;font:600 13px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)', 'the promise', 550, 'fd');
+    el('fd', `position:absolute;left:${PX0 + 20}px;top:516px;width:${PX1 - PX0 - 40}px;height:462px;border-radius:12px;border:1px solid rgba(61,205,88,.3);background:repeating-linear-gradient(90deg,rgba(61,205,88,.05) 0 1px,transparent 1px 13px),rgba(6,10,8,.6)`, '', p, 450);
+    OC.forEach(([n, ls], j) => { const t = 600 + j * 150, [num, lab] = PROOF[j], c = el('a cr hit', `position:absolute;left:${PX0 + 28}px;top:${CY(j)}px;width:${PX1 - PX0 - 56}px;height:${CH}px;border-radius:9px;background:rgba(11,17,14,.92);border:1px solid rgba(61,205,88,.28)`, '', p, t);
+      tx(c, 'left:16px;top:16px', `<span class="chip g" style="font-size:14px;padding:4px 9px">${OCS[j]}</span>`, t, 'fd');
+      tx(c, 'left:66px;top:18px;font:500 19px/1 var(--f);color:var(--white)', n, t);
+      tx(c, `left:66px;top:52px;font:600 32px/1 var(--f);letter-spacing:-.02em;color:${j === 3 ? 'var(--copper)' : 'var(--se)'}`, `${num}<span style="font:400 16px/1 var(--f);letter-spacing:0;color:var(--grey);margin-left:10px">${lab}</span>`, t + 80, 'fd');
+      tx(c, 'right:16px;top:20px;font:600 15px/1 var(--f);letter-spacing:.2em;color:var(--grey)', ls.split('').join(' '), t + 120, 'fd');
+      c.onclick = () => pick('c', j); CR.push(c); });
+    const arr = {}; OL.forEach(([c], i) => OC.forEach((o, j) => { if (o[1].includes(c)) { const k = (i < 3 ? 'L' : 'R') + j; (arr[k] = arr[k] || []).push(c); } }));
+    const LANE = { 'S0': 0, 'L1': 1, 'S1': 2, 'L2': 3, 'L3': 4, 'O2': 5, 'P0': 0, 'M1': 1, 'P2': 2, 'T0': 3, 'P3': 4, 'T3': 5 };
+    console.assert(Object.keys(LANE).length === 12, 'chip: one lane per link');
+    OL.forEach(([c, n, d], i) => { const left = i < 3, x = left ? 96 : 1444, y = 470 + (i % 3) * 178, t = 1100 + i * 140, links = OC.map(o => o[1].includes(c)), cnt = links.filter(Boolean).length, strong = cnt === 3;
+      const k = kc(p, x, y, 380, 156, t, 'hit' + (strong ? ' hl' : ''));
+      tx(k, 'left:22px;top:18px;font:600 22px/1.2 var(--f)', `<span style="color:var(--se);margin-right:10px">${c}</span>${n}`, t);
+      tx(k, 'left:22px;top:54px;font:400 17px/1.3 var(--f);color:var(--grey)', d, t + 50);
+      tx(k, 'left:22px;top:100px;display:flex;gap:7px', OCS.map((o, j) => `<span class="chip ${links[j] ? 'g' : 'n'}" style="font-size:14px;padding:5px 10px;${links[j] ? '' : 'opacity:.45'}">${o}</span>`).join(''), t + 120, 'fd');
+      tx(k, `right:22px;top:104px;font:600 20px/1 var(--f);color:${strong ? 'var(--se)' : 'var(--grey)'}`, '×' + cnt, t + 150, 'fd');
+      k.onclick = () => pick('l', c); LV.push([c, k]);
+      links.map((on, j) => on ? j : -1).filter(j => j >= 0).forEach((j, m) => { const side = left ? 'L' : 'R', g = arr[side + j], q = g.indexOf(c);
+        const sx = left ? 476 : 1444, sy = y + 78 + (m - (cnt - 1) / 2) * 14, ex = left ? PX0 : PX1, ey = ccy(j) + (q - (g.length - 1) / 2) * 16, dir = left ? 1 : -1;
+        const xb = left ? 656 - LANE[c + j] * 26 : 1264 + LANE[c + j] * 26, dy = ey - sy, r = Math.min(10, Math.abs(dy) / 2), sg = Math.sign(dy) || 1, id = `tr14${c}${j}`, tt = 1700 + TR.length * 70;
+        const path = mk('path', { id, class: 'dw tr', d: `M${sx},${sy} H${xb - dir * r} L${xb},${sy + sg * r} V${ey - sg * r} L${xb + dir * r},${ey} H${ex}`, pathLength: 100, fill: 'none', stroke: strong ? '#3DCD58' : 'rgba(255,255,255,.4)', 'stroke-width': strong ? 3 : 2, 'stroke-linejoin': 'round', 'data-t': tt }, s);
+        const pin = mk('rect', { class: 'fd tr', x: left ? ex - 13 : ex + 1, y: ey - 3.5, width: 12, height: 7, rx: 1.5, fill: strong ? '#3DCD58' : 'rgba(255,255,255,.6)', 'data-t': tt + 500 }, s);
+        const pad = mk('circle', { class: 'fd tr', cx: sx, cy: sy, r: 4, fill: strong ? '#3DCD58' : 'rgba(255,255,255,.6)', 'data-t': tt }, s);
+        const dot = mk('circle', { class: 'fd tr', r: 3.5, fill: '#B8F5C3', 'data-t': 3200 + TR.length * 90 }, s);
+        const am = mk('animateMotion', { dur: (2.2 + (TR.length % 4) * .25) + 's', repeatCount: 'indefinite', begin: (TR.length * .3) + 's' }, dot); mk('mpath', { href: '#' + id }, am);
+        TR.push({ l: c, c: j, els: [path, pin, pad, dot], path }); }); });
+    const used = new Set(TR.map(x => Math.round(+x.els[1].getAttribute('y')) + (x.els[1].getAttribute('x') < 960 ? 'L' : 'R')));
+    for (let yy = PY0 + 76; yy < PY1 - 20; yy += 26) ['L', 'R'].forEach(sd => { if ([...used].some(u => u.endsWith(sd) && Math.abs(parseInt(u) - yy) < 14)) return;
+      mk('rect', { class: 'fd', x: sd === 'L' ? PX0 - 11 : PX1 + 1, y: yy - 3, width: 10, height: 6, rx: 1.5, fill: 'rgba(255,255,255,.16)', 'data-t': 400 }, s); });
+    for (let xx = PX0 + 40; xx < PX1 - 30; xx += 26) [PY0 - 9, PY1 + 3].forEach(yy => mk('rect', { class: 'fd', x: xx - 3, y: yy, width: 6, height: 6, rx: 1.5, fill: 'rgba(255,255,255,.14)', 'data-t': 400 }, s));
+    let cur = null;
+    const apply = () => { const on = cur && (x => cur[0] === 'l' ? x.l === cur[1] : x.c === cur[1]);
+      TR.forEach(x => { const a = !on || on(x); x.els.forEach(e => e.classList.toggle('dim', !a)); x.path.classList.toggle('lit', !!on && a); });
+      LV.forEach(([c, k]) => { const a = on && TR.some(x => x.l === c && on(x)); k.classList.toggle('dim', !!on && !a); k.classList.toggle('sel', !!a); });
+      CR.forEach((k, j) => { const a = on && TR.some(x => x.c === j && on(x)); k.classList.toggle('dim', !!on && !a); k.classList.toggle('sel', !!a); }); };
+    const pick = (kind, key) => { cur = cur && cur[0] === kind && cur[1] === key ? null : [kind, key]; apply(); };
+    p._reset14 = () => { cur = null; apply(); }; }
+
+  /* ---------------- slide 15: resources & competences ---------------- */
+  const RC = [['R1', 'Installed base &amp; connected products', 10, 9, 'Flywheel: 62% of revenue, +15%'], ['R2', 'Partner network', 9, 9, '~1M partners in 100+ countries'], ['R3', 'Energy management software', 9, 8, 'Ahead of Siemens on 4 of 7 criteria'],
+    ['R4', 'Industrial software (AVEVA)', 4, 7, 'Strong, but built for process plants'], ['C1', 'Integrated system design', 10, 8, 'EcoStruxure links products, edge, apps'], ['C2', 'Supply-chain execution', 8, 10, 'Gartner #1 2023–2026; Siemens #15'],
+    ['C3', 'R&amp;D and innovation', 9, 6, '5.9% of sales vs Siemens 8.3%'], ['C4', 'Lifecycle services', 9, 4, 'Only ~16% of installed base serviced'], ['C5', 'Pricing discipline', 7, 3, 'Net price −€179m in 2025'],
+    ['C6', 'Industrial automation know-how', 4, 4, '+3% growth, 14.2% margin'], ['C7', 'Sustainability know-how', 8, 9, 'Impact score 8.86/10 in 2025']];
+  { const p = pans[14], SX = v => 700 + v * 50;
+    [0, 5, 10].forEach(v => { el('gl fd', `left:${SX(v)}px;top:540px;height:420px`, '', p, 600); el('t ax fd', `left:${SX(v)}px;top:968px;transform:translateX(-50%)`, v, p, 600); });
+    el('t ax fd', 'left:1300px;top:526px', 'R · S', p, 600); el('t ax fd', 'left:1380px;top:526px', 'Evidence', p, 600);
+    RC.forEach(([c, n, r, st, ev], i) => { const y = 562 + i * 37.5, t = 700 + i * 120, gap = r > st, big = r - st >= 4;
+      el('t a', `left:130px;top:${y - 10}px;font:600 18px/1 var(--f);color:var(--se)`, c, p, t);
+      el('t a', `left:180px;top:${y - 11}px;font:${big ? 500 : 400} 21px/1 var(--f);color:${big ? 'var(--copper)' : 'var(--white)'}`, n, p, t);
+      el('ln gx' + (gap ? ' neg cu' : ''), `left:${SX(Math.min(r, st))}px;top:${y}px;width:${Math.abs(r - st) * 50}px`, '', p, t + 450);
+      el('wc fd', `left:${SX(r)}px;top:${y}px`, '', p, t + 200);
+      el('rc mv' + (big ? ' cu' : st > 7 ? ' se' : ''), `left:${SX(st)}px;top:${y}px;--d:${SX(r) - SX(st)}px`, '', p, t + 450);
+      el('t vl fd', `left:1300px;top:${y - 10}px`, `${r} · ${st}`, p, t + 900);
+      el('t sm a', `left:1380px;top:${y - 10}px;font-size:18px`, ev, p, t + 950); }); }
+
+  /* ---------------- slide 16: importance × strength ---------------- */
+  const QD = { ks: RC.filter(r => r[2] > 5 && r[3] > 5).map(r => r[0]), kw: RC.filter(r => r[2] > 5 && r[3] < 5).map(r => r[0]), sf: RC.filter(r => r[2] < 5 && r[3] > 5).map(r => r[0]), ir: RC.filter(r => r[2] < 5 && r[3] < 5).map(r => r[0]) };
+  console.assert(QD.ks.join() === 'R1,R2,R3,C1,C2,C3,C7' && QD.kw.join() === 'C4,C5' && QD.sf.join() === 'R4' && QD.ir.join() === 'C6', 'quadrants follow the scores', QD);
+  { const p = pans[15], PX = v => 230 + v * 62, PY = v => 948 - v * 40;
+    el('qd fd', `left:${PX(5)}px;top:${PY(10)}px;width:${PX(10) - PX(5)}px;height:${PY(5) - PY(10)}px;background:rgba(61,205,88,.1)`, '', p, 600);
+    el('qd fd', `left:${PX(5)}px;top:${PY(5)}px;width:${PX(10) - PX(5)}px;height:${PY(0) - PY(5)}px;background:rgba(201,138,75,.12)`, '', p, 600);
+    el('gl fd', `left:${PX(5)}px;top:${PY(10)}px;height:${PY(0) - PY(10)}px;background:rgba(255,255,255,.25)`, '', p, 600);
+    el('hr fd', `left:${PX(0)}px;width:${PX(10) - PX(0)}px;top:${PY(5)}px;background:rgba(255,255,255,.25)`, '', p, 600);
+    el('hr fd', `left:${PX(0)}px;width:${PX(10) - PX(0)}px;top:${PY(0)}px;background:rgba(255,255,255,.35)`, '', p, 600);
+    el('gl fd', `left:${PX(0)}px;top:${PY(10)}px;height:${PY(0) - PY(10)}px;background:rgba(255,255,255,.35)`, '', p, 600);
+    [['Superfluous strengths', PX(0) + 14, PY(10) + 10, 'var(--grey)'], ['Key strengths', PX(5) + 14, PY(10) + 10, 'var(--se)'], ['Zone of irrelevance', PX(0) + 14, PY(0) - 30, 'var(--grey)'], ['Key weaknesses', PX(5) + 14, PY(0) - 30, 'var(--copper)']]
+      .forEach(([l, x, y, c]) => el('t fd', `left:${x}px;top:${y}px;font:500 18px/1 var(--f);color:${c}`, l, p, 700));
+    el('t ax fd', `left:${PX(0)}px;top:${PY(0) + 14}px`, '0', p, 700); el('t ax fd', `left:${PX(10)}px;top:${PY(0) + 14}px;transform:translateX(-100%)`, 'Relevance to compete → 10', p, 700);
+    el('t ax fd', `left:${PX(0) - 14}px;top:${PY(10) - 8}px;transform:translateX(-100%)`, '10', p, 700); el('t ax fd', `left:124px;top:478px`, 'Relative strength ↑', p, 700);
+    RC.forEach(([c, n, r, st], i) => { const x = PX(r), y = PY(st), k = QD.ks.includes(c) ? 'se' : QD.kw.includes(c) ? 'cu' : '';
+      el('pt ry ' + (k === 'se' ? 'se' : ''), `left:${x}px;top:${y}px;--d:${PY(0) - y}px`, `<i style="${k === 'cu' ? 'background:var(--copper);box-shadow:0 0 0 7px rgba(201,138,75,.2)' : ''}"></i>`, p, 1100 + i * 110);
+      el('t fd', `left:${x + 14}px;top:${y - 26}px;font:600 16px/1 var(--f);color:${k === 'se' ? 'var(--se)' : k === 'cu' ? 'var(--copper)' : 'var(--white)'}`, c, p, 1500 + i * 110); });
+    [['Key strengths: protect', 'var(--se)', 'Installed base (R1), partners (R2), energy software (R3), integrated design (C1), supply chain (C2), sustainability (C7); R&amp;D (C3) only just above the line.'],
+      ['Key weaknesses: fix first', 'var(--copper)', 'Pricing (C5) and lifecycle services (C4). Both feed the +2.5 pts margin goal for 2030.'],
+      ['Superfluous strength', 'var(--white)', 'AVEVA (R4): strong, but built for process plants, not for this promise.'],
+      ['Zone of irrelevance', 'var(--white)', 'Industrial automation know-how (C6): this promise does not need it.']]
+      .forEach(([h, c, t], i) => el('step a', `left:1008px;right:124px;top:${520 + i * 118}px;${i ? 'border-top:1px solid var(--hair)' : ''}`, `<b style="color:${c}">${h}</b><p>${t}</p>`, p, 2800 + i * 200)); }
+
+  /* ---------------- slide 17: strengths & weaknesses ---------------- */
+  const SW = [[['100+', 'countries', 'International presence', 'About 160,000 employees: it can serve global customers locally.'], ['7/7', 'arenas', 'Integrated portfolio', 'Equipment, automation, software and services sold as one connected system.'],
+      ['30%', 'largest market', 'Diversified markets', 'Data centres lead, but buildings, industry and infrastructure spread the risk.'], ['~1M', 'partners', 'Partner network', 'Distributors, installers and integrators sell, install and support locally.']],
+    [['15.1%', 'ROCE vs ABB 25.3%', 'Low capital efficiency', 'Growth by acquisition: goodwill is about two thirds of capital (€25.1bn of €36.8bn).'], ['−€179m', 'net price', 'Limited pricing power', 'Raw materials and tariffs (−€255m) beat price increases: profit came from volume.'],
+      ['+3%', 'vs +10%', 'Weak Industrial Automation', 'Slower than Energy Management, with a 14.2% margin against 21.8%.'], ['18.7%', 'vs ABB 19.0%', 'Margin diluted by mix', 'Fast-growing data-centre systems earn less; support costs rise.']]];
+  { const p = pans[16];
+    SW.forEach((side, s) => side.forEach(([n, sub, h, t], i) => { const x = 124 + s * 876 + (i % 2) * 412, y = 540 + Math.floor(i / 2) * 236, tt = 700 + s * 900 + i * 180;
+      if (i % 2 === 0 && i) el('hr fd', `left:${124 + s * 876}px;width:796px;top:${y - 20}px`, '', p, 600);
+      el('t a', `left:${x}px;top:${y}px;font:600 50px/1 var(--f);letter-spacing:-.035em;color:${s ? 'var(--copper)' : 'var(--se)'}`, n + `<span style="margin-left:12px;font:400 18px/1 var(--f);letter-spacing:0;color:var(--grey)">${sub}</span>`, p, tt);
+      el('t a', `left:${x}px;top:${y + 70}px;width:370px;white-space:normal;font:500 22px/1.2 var(--f);color:var(--white)`, h + `<span style="display:block;margin-top:8px;font:400 19px/1.38 var(--f);color:var(--grey)">${t}</span>`, p, tt + 80); })); }
+
+  /* ---------------- slide 18: conclusion ---------------- */
+  { const p = pans[17];
+    [['01', 'Where it competes', '7 of 7', 'arenas covered; only Siemens comes close', 'All seven arenas. Data centres are the #1 market, 30% of orders, and also the most crowded.'],
+      ['02', 'Why it wins', '≈47%', 'return on capital excluding goodwill, 3× the industry', 'An industry that creates value and an ecosystem customers don’t leave: ROIC 16.4% against an 8.3% cost of capital.'],
+      ['03', 'Where it should go', '+2.5 pts', 'of margin by 2030: 18.7% → ≈21.2%, ≈€1bn a year', 'Close to the core, buying the know-how it lacks, while protecting pricing against tariffs and low-cost rivals.']]
+      .forEach(([k, h, n, sub, t], i) => { const x = 96 + i * 584, tt = 500 + i * 450;
+        el('box a', `left:${x}px;top:420px;width:560px;height:584px`, `<div class="bh">${h}<span>${k}</span></div>`, p, tt);
+        el('t a', `left:${x + 28}px;top:520px;font:600 92px/1 var(--f);letter-spacing:-.045em;color:${i === 1 ? 'var(--se)' : 'var(--white)'}`, n, p, tt + 200);
+        el('t a', `left:${x + 28}px;top:636px;width:500px;white-space:normal;font:400 22px/1.36 var(--f);color:var(--mid)`, sub, p, tt + 300);
+        el('hr fd', `left:${x + 28}px;width:504px;top:760px`, '', p, tt + 350);
+        el('t a', `left:${x + 28}px;top:788px;width:500px;white-space:normal;font:400 23px/1.42 var(--f);color:var(--white)`, t, p, tt + 400); }); }
+
+  /* ---------------- slide 19: appendix ---------------- */
+  { const p = pans[pans.length - 1];
+    [['Company data', ['Schneider Electric FY2025 results (26&nbsp;Feb&nbsp;2026)', '2025 URD, Integrated and Sustainable Development Reports', 'CMD (Dec 2025), H1&nbsp;2026 results, Mt.&nbsp;Juliet plant (Nov&nbsp;2025)', 'Rockwell Automation and Legrand, 2025 annual reports', 'ABB Q4 2025 results']],
+      ['Industry and market', ['Damodaran Online, US industry averages (Jan 2026)', 'IEA (power demand); Gartner Supply Chain Top 25 (2023–2026)', 'CBRE North America Data Center Trends H2 2025', 'Wood Mackenzie, Facilities Dive, Channel Dive, ARC Advisory', 'Latitude Media; WEF Global Lighthouse Network (Jul 2026)']],
+      ['Definitions', ['ROIC = operating income × (1 − tax rate) ÷ (equity + net debt)', 'ROIC = NOPAT margin × capital turnover', 'Spread = ROIC − WACC: positive means value is created', 'Progress = latest value ÷ 2030 target', '≈&nbsp;=&nbsp;group calculation; ~&nbsp;=&nbsp;approximate company figure']],
+      ['Group assessments', ['Five forces and PESTEL weights (each set totals 100%)', 'Arena presence matrix and market matrix status', 'Value-chain ratings, resource and competence scores (0–10)', 'Operating model links (S-L-O-P-T-M)', 'Impact ratings (0–4) and group targets, slides 19–30']]]
+      .forEach(([h, items], i) => { const x = 96 + i * 438, tt = 400 + i * 200;
+        el('box a', `left:${x}px;top:456px;width:414px;height:548px`, `<div class="bh">${h}</div>` + items.map((t, j) => `<p style="position:absolute;left:28px;right:28px;top:${80 + j * 90}px;font:400 21px/1.38 var(--f);color:var(--mid)">${t}</p>`).join(''), p, tt); }); }
+
+  /* ---------------- part 2 builds: slides 19–30 ---------------- */
+  const Q = 18, chipc = c => 'OS'.includes(c[0]) ? 'gs' : 'o', ch = (c, k = chipc(c)) => `<span class="chip ${k}" style="font-size:13px;padding:5px 8px">${c}</span>`;
+  const SWH = { O: ['Opportunities', 'playing field'], T: ['Threats', 'playing field'], S: ['Strengths', 'value prop. &amp; op. model'], W: ['Weaknesses', 'value prop. &amp; op. model'] };
+  const COLX = [96, 680, 1264], COLW = 560;
+
+  const buildSW = p => {
+    Object.keys(SWOT).forEach((key, i) => { const x = 96 + i * 438, t0 = 350 + i * 250, c = kc(p, x, 420, 414, 372, t0); kh(c, SWH[key][0], SWH[key][1]);
+      SWOT[key].forEach(([code, lab, num, add], j) => { const y = 60 + j * 51, t = t0 + 120 + j * 70;
+        tx(c, `left:22px;top:${y}px`, ch(code), t, 'fd');
+        tx(c, `left:74px;top:${y - 1}px;font:500 18px/1.2 var(--f)`, lab + (add ? `<span class="nw">${add === 2 ? 'sharpened' : 'added'}</span>` : ''), t, 'fd');
+        tx(c, `left:74px;top:${y + 23}px;font:400 15px/1.2 var(--f);color:var(--grey)`, num, t + 60, 'fd'); }); });
+    P7.filter(d => d.k === 'SP').forEach((d, i) => { const t = 1900 + i * 250, c = kc(p, COLX[i], 816, COLW, 188, t);
+      kh(c, `${d.c} · Horizon ${i + 1}`, HZ[i]);
+      tx(c, 'left:24px;top:52px;width:512px;white-space:normal;font:500 22px/1.2 var(--f)', d.name, t + 50);
+      tx(c, 'left:24px;top:118px;width:512px;display:flex;flex-wrap:wrap;gap:6px', d.link.map(l => ch(l)).join(''), t + 200, 'fd'); }); };
+
+  const buildMap = p => { const s = svgIn(p), K = .62, sy = d => d.replace(/(\d+),(\d+)/g, (m, x, y) => x + ',' + Math.round(396 + (y - 396) * K));
+    mk('path', { d: sy('M120,396 L120,604 L1824,604'), fill: 'none', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 1.5, class: 'fd', 'data-t': 300 }, s);
+    tx(p, 'left:1824px;top:533px;transform:translateX(-100%);font:400 15px/1 var(--f);color:var(--dim)', 'Time →', 350, 'fd');
+    tx(p, 'left:100px;top:462px;transform:translate(-50%,-50%) rotate(-90deg);font:400 15px/1 var(--f);color:var(--dim)', 'Value', 350, 'fd');
+    [['', 'M120,584 C260,480 470,456 780,460', '#F4F6F5'], ['M120,596 C300,628 520,622 660,548', 'M660,548 C780,470 1020,440 1300,444', '#3DCD58'], ['M120,592 C520,640 960,636 1200,540', 'M1200,540 C1360,470 1580,432 1824,428', '#C98A4B']]
+      .forEach(([dash, line, col], i) => { const t = 500 + i * 450;
+        if (dash) mk('path', { d: sy(dash), fill: 'none', stroke: col, 'stroke-width': 2.5, 'stroke-dasharray': '7 7', opacity: .7, class: 'fd', 'data-t': t }, s);
+        mk('path', { class: 'dw', d: sy(line), pathLength: 100, fill: 'none', stroke: col, 'stroke-width': 3.5, 'data-t': t + 150 }, s);
+        tx(p, `left:${[150, 700, 1290][i]}px;top:396px;font:400 17px/1 var(--f);color:var(--grey)`, `<b style="font-weight:600;color:${col}">Horizon ${i + 1}</b> · ${HZ[i]}`, t, 'fd'); });
+    const B = v => `<b style="color:var(--se);font-weight:600">${v}</b>`, kr = (d, i) => { const [k, f, to, by] = d.krs[i]; return `${k} ${B(f === '–' ? to : f + ' → ' + to)} <span style="color:var(--dim)">by ${by}</span>`; };
+    const [s1, s2, s3] = P7.filter(d => d.k === 'SP');
+    const HEAD = [`Adj. EBITA margin ${B(s1.krs[1][1] + ' → ' + s1.krs[1][2])} · net price ${B(s1.krs[2][1] + ' → ' + s1.krs[2][2])}`,
+      `Software &amp; services ${B(s2.krs[0][1] + ' → ' + s2.krs[0][2])} of revenue by ${s2.krs[0][3]}`,
+      `Energy access ${B(s3.krs[1][1] + ' → ' + s3.krs[1][2])} people · ${B(s3.krs[0][2])} pilots by ${s3.krs[0][3]}`];
+    [s1, s2, s3].forEach((d, i) => { const t = 1700 + i * 200, c = kc(p, COLX[i], 566, COLW, 146, t); kh(c, d.c, 'strategic priority');
+      tx(c, 'left:24px;top:50px;width:512px;white-space:normal;font:500 21px/1.2 var(--f)', d.name, t + 50);
+      tx(c, 'left:24px;top:112px;font:400 16px/1.2 var(--f);color:var(--mid)', HEAD[i], t + 150, 'fd'); });
+    const E = Object.fromEntries(P7.filter(d => d.k === 'E').map(d => [d.c, d]));
+    const CELL = { E1: { 1: kr(E.E1, 1), 2: kr(E.E1, 0) }, E2: { 1: kr(E.E2, 2), 2: kr(E.E2, 0), 3: kr(E.E2, 1) },
+      E3: { 1: kr(E.E3, 0), 2: `Refurbishment lines for circular offers ${B(MEAS[13][2] + ' → ' + MEAS[13][3])}` },
+      E4: { 1: kr(E.E4, 1), 2: kr(E.E4, 0), 3: `Local partners run the SP3 pilots ${B(s3.krs[0][2])} <span style="color:var(--dim)">by ${s3.krs[0][3]}</span>` } };
+    console.assert(Object.values(E).every(d => Object.keys(d.hz).sort().join() === Object.keys(CELL[d.c]).sort().join()), 'horizon map: one numbered cell per horizon of each enabling priority');
+    Object.values(E).forEach((d, j) => { const t = 2400 + j * 250, y = 730 + j * 68, c = kc(p, 96, y, 1728, 62, t);
+      tx(c, 'left:20px;top:10px;font:500 18px/1 var(--f)', `<span style="color:var(--se);margin-right:10px">${d.c}</span>${d.name}`, t);
+      tx(c, 'right:20px;top:11px;font:400 15px/1 var(--f);color:var(--grey)', d.cap, t + 100, 'fd');
+      Object.keys(d.hz).forEach(h => tx(c, `left:${COLX[h - 1] - 96 + 20}px;top:37px;font:400 15px/1 var(--f);color:${d.hz[h] === 'm' ? 'var(--white)' : 'var(--grey)'}`, `<span style="color:var(--se);margin-right:8px">${d.hz[h] === 'm' ? '●' : '○'}</span>${CELL[d.c][h]}`, t + 150 + h * 80, 'fd')); }); };
+
+  const WHO = { C: ['Company', 'g'], G: ['Group', 'n'] };
+  /* key-result bars: gap = latest and target on one scale; range = target band; neg = loss to close; floor = threshold; new = no baseline yet */
+  const KRV = { 'Organic revenue growth': ['range', 7, 10, 8.9, 12, 'within range'], 'Adjusted EBITA margin': ['gap', 18.7, 21.2, '+2.5 pts'], 'Net price effect on profit': ['neg', 179, 179, '+€179m'],
+    'Software and services share of revenue': ['gap', 19, 25, '+6 pts'], 'Offers with circular design': ['gap', 27, 100, '+73 pts'], 'Energy saved or electrified for customers': ['gap', 129, 1500, '×11.6'],
+    'Pilot communities live': ['gap', 0, 2, '+2'], 'People with access to energy (company target)': ['gap', 67, 100, '+33M'], 'Pilots that cover their operating costs': ['new'],
+    'Installed base serviced': ['gap', 16, 30, '+14 pts'], 'Installed base mapped in the top markets': ['new'],
+    'AiDASH and Cognite on the shared data layer': ['gap', 0, 2, '+2'], 'Software with carbon insights': ['gap', 29, 100, '+71 pts'], 'Regions with price and margin analytics': ['gap', 0, 4, '+4'],
+    'New contracts with cost pass-through clauses': ['new'], 'On-time delivery in all engineer-to-order plants': ['floor', 97, 95, 'every plant ≥ 95%'], 'Copper, steel and chips dual-sourced': ['new'],
+    'Partners certified for services': ['gap', 1, 2, '×2'], 'Regions tracking discounts against list price': ['gap', 0, 4, '+4'], 'Distributors under price-discipline rules': ['new'],
+    'Employees upskilled each year': ['gap', 31, 100, '+69 pts'], 'Young people trained in energy jobs': ['gap', 1.4, 3, '+1.6M'], 'Technician vacancies filled within 90 days': ['new'] };
+  console.assert(PRI.every(d => d.krs.every(r => KRV[r[0]])), 'every key result has a bar');
+  const buildOP = (p, d) => {
+    const ok = kc(p, 96, 420, 1092, 330, 400); kh(ok, 'Objective &amp; key results', 'with timeline');
+    tx(ok, 'left:24px;top:54px;width:1040px;white-space:normal;font:500 24px/1.25 var(--f)', d.obj, 450);
+    [['Key result', 24], ['Latest → target', 470], ['By', 900], ['Target set by', 970]].forEach(([h, x]) => tx(ok, `left:${x}px;top:102px;font:400 15px/1 var(--f);color:var(--dim)`, h, 500, 'fd'));
+    tx(ok, 'left:860px;top:102px;transform:translateX(-100%);font:400 15px/1 var(--f);color:var(--dim)', 'to close', 500, 'fd');
+    d.krs.forEach(([k, f, to, by, w], i) => { const y = 128 + i * 62, t = 650 + i * 180, v = KRV[k], BX = 470, BW = 390, by0 = y + 42;
+      el('hr fd', `left:24px;right:24px;top:${y}px`, '', ok, t);
+      tx(ok, `left:24px;top:${y + 14}px;width:420px;white-space:normal;font:400 19px/1.25 var(--f);color:var(--white)`, k, t, 'a');
+      tx(ok, `left:${BX}px;top:${y + 11}px;font:400 18px/1.2 var(--f);color:var(--grey)`, `${f} <span style="color:var(--dim)">→</span> <b style="color:var(--se);font-weight:600">${to}</b>`, t + 80, 'fd');
+      tx(ok, `left:${BX + BW}px;top:${y + 12}px;transform:translateX(-100%);font:600 16px/1.2 var(--f);color:${v[0] === 'neg' ? 'var(--copper)' : 'var(--white)'}`, v[0] === 'new' ? '<span class="chip n" style="font-size:13px;padding:3px 9px">new measure</span>' : v[v.length - 1], t + 260, 'fd');
+      const bar = (x0, x1, css, tt, cls = '') => el('gw ' + cls, `position:absolute;left:${BX + x0 * BW}px;top:${by0}px;width:${Math.max(0, (x1 - x0) * BW)}px;height:8px;border-radius:4px;${css}`, '', ok, tt);
+      bar(0, 1, 'background:rgba(255,255,255,.07)', t + 100, 'fd');
+      const GAP = 'background:repeating-linear-gradient(135deg,rgba(61,205,88,.55) 0 3px,rgba(61,205,88,.12) 3px 7px);box-shadow:inset 0 0 0 1px rgba(61,205,88,.7)', NOW = 'background:rgba(255,255,255,.62)';
+      const tick = (x, col, tt) => el('fd', `position:absolute;left:${BX + x * BW - 1}px;top:${by0 - 5}px;width:3px;height:18px;border-radius:2px;background:${col}`, '', ok, tt);
+      if (v[0] === 'gap') { const [, a, b] = v; bar(0, a / b, NOW, t + 200); bar(a / b, 1, GAP, t + 420); }
+      else if (v[0] === 'new') bar(0, 1, GAP + ';opacity:.6', t + 420);
+      else if (v[0] === 'range') { const [, lo, hi, now, mx] = v; bar(lo / mx, hi / mx, GAP, t + 300); bar(0, now / mx, NOW, t + 200); tick(now / mx, 'var(--white)', t + 500); }
+      else if (v[0] === 'floor') { const [, now, fl] = v; bar(0, now / 100, NOW, t + 200); tick(fl / 100, 'var(--se)', t + 500); }
+      else if (v[0] === 'neg') { const [, now, mn] = v;  bar(1 - now / mn, 1, 'background:var(--copper);opacity:.75', t + 200, 'rt'); tick(1, 'var(--se)', t + 500); }
+      tx(ok, `left:900px;top:${y + 14}px;font:400 20px/1.25 var(--f)`, by, t + 160, 'fd');
+      tx(ok, `left:970px;top:${y + 10}px`, `<span class="chip ${WHO[w][1]}" style="font-size:14px;padding:6px 10px">${WHO[w][0]}</span>`, t + 200, 'fd'); });
+    const ki = kc(p, 96, 774, 1092, 230, 1300); kh(ki, 'Key initiatives', d.init.length + ' moves');
+    d.init.forEach((t, i) => tx(ki, `left:${24 + (i % 2) * 530}px;top:${58 + Math.floor(i / 2) * 56}px;width:500px;white-space:normal;font:400 18px/1.3 var(--f);color:var(--mid)`, `<b style="color:var(--se);font-weight:600;margin-right:10px">0${i + 1}</b>${t}`, 1400 + i * 120, 'a'));
+    const lk = kc(p, 1212, 420, 612, 190, 550); kh(lk, 'Link to the challenge', 'findings, slide 19');
+    tx(lk, 'left:24px;top:54px;width:564px;display:flex;flex-wrap:wrap;gap:6px', d.link.map(l => ch(l)).join(''), 650, 'fd');
+    tx(lk, 'left:24px;top:98px;width:564px;white-space:normal;font:400 18px/1.35 var(--f);color:var(--mid)', d.why, 750, 'a');
+    const ow = kc(p, 1212, 634, 612, 186, 900);
+    [['Ownership', d.own, 20], ['Resources', d.res, 100]].forEach(([h, t, y], i) => {
+      tx(ow, `left:24px;top:${y}px;font:600 15px/1 var(--f);letter-spacing:.16em;text-transform:uppercase;color:var(--se)`, h, 950 + i * 150);
+      tx(ow, `left:24px;top:${y + 22}px;width:564px;white-space:normal;font:400 17px/1.3 var(--f);color:var(--mid)`, t, 1000 + i * 150, 'a'); });
+    const mi = kc(p, 1212, 844, 612, 160, 1700); kh(mi, 'Milestones'); const n = d.ms.length, w = 564 / n;
+    el('hr fd', 'left:24px;right:24px;top:80px;background:rgba(255,255,255,.25)', '', mi, 1750);
+    d.ms.forEach(([y, t], i) => { const x = 24 + i * w, tt = 1800 + i * 160;
+      el('fd', `position:absolute;left:${x}px;top:74px;width:13px;height:13px;border-radius:50%;background:var(--se)`, '', mi, tt);
+      tx(mi, `left:${x}px;top:50px;font:600 18px/1 var(--f);color:var(--se)`, y, tt, 'fd');
+      tx(mi, `left:${x}px;top:96px;width:${w - 14}px;white-space:normal;font:400 15px/1.3 var(--f);color:var(--mid)`, t, tt + 60, 'a'); }); };
+
+  const buildHB = p => { const X0 = 420, CW = 100, cx = c => X0 + c * CW + CW / 2, RY = r => 558 + r * 56, mx = colMax(P7);
+    const groups = []; MEAS.forEach(([g], c) => { if (!groups.length || groups[groups.length - 1][0] !== g) groups.push([g, c, c]); else groups[groups.length - 1][2] = c; });
+    groups.forEach(([g, a, b], i) => { const t = 300 + i * 80;
+      tx(p, `left:${X0 + a * CW + 8}px;top:384px;width:${(b - a + 1) * CW - 16}px;white-space:normal;text-align:center;font:600 14px/1 var(--f);letter-spacing:.14em;text-transform:uppercase;color:var(--se)`, g, t, 'fd');
+      el('hr fd', `left:${X0 + a * CW + 8}px;width:${(b - a + 1) * CW - 16}px;top:406px;background:rgba(61,205,88,.5)`, '', p, t);
+      if (i) el('gl fd', `left:${X0 + a * CW}px;top:380px;height:610px`, '', p, t); });
+    MEAS.forEach(([, m, f, to], c) => { const t = 500 + c * 40, gap = mx[c] < 3;
+      tx(p, `left:${cx(c) - 46}px;top:418px;width:92px;white-space:normal;text-align:center;font:500 15px/1.2 var(--f);color:${gap ? 'var(--copper)' : 'var(--white)'}`, m, t, 'fd');
+      tx(p, `left:${cx(c) - 48}px;top:482px;width:96px;white-space:nowrap;text-align:center;font:400 14px/1.3 var(--f);color:var(--grey)`, `${f}<br><b style="color:var(--se);font-weight:600">→ ${to.replace(' a year', '')}</b>`, t + 100, 'fd'); });
+    tx(p, 'left:96px;top:482px;font:400 15px/1.3 var(--f);color:var(--grey)', 'Target values<br>latest → target', 600, 'fd');
+    P7.forEach((d, r) => { const y = RY(r), t = 1300 + r * 220;
+      el('hr fd', `left:96px;right:96px;top:${y - 28}px`, '', p, t);
+      tx(p, `left:96px;top:${y - 12}px;font:400 18px/1.2 var(--f);color:var(--mid)`, `${ch(d.c, d.k === 'SP' ? 'g' : 'n')}<span style="margin-left:10px">${d.s}</span>`, t, 'fd');
+      HB[d.c].forEach((v, c) => el('hb fd' + (v && v === mx[c] ? (mx[c] < 3 ? ' cu' : ' g') : ''), `left:${cx(c)}px;top:${y}px;--v:${v}`, '', p, t + 60 + c * 25)); });
+    const ye = RY(6) + 72, e5 = PRI[7];
+    el('hr fd', `left:96px;right:96px;top:${ye - 32}px;height:0;background:none;border-top:1.5px dashed rgba(61,205,88,.6)`, '', p, 3200);
+    tx(p, `left:96px;top:${ye - 12}px;font:400 18px/1.2 var(--f);color:var(--se)`, `${ch(e5.c, 'g')}<span style="margin-left:10px">${e5.s}</span><span class="nw">added</span>`, 3300, 'fd');
+    HB[e5.c].forEach((v, c) => el('hb fd g', `left:${cx(c)}px;top:${ye}px;--v:${v}`, '', p, 3400 + c * 25)); };
+
+  const DECK = { Retain: 'n', Modify: '', New: 'g' };
+  const buildRV = p => { [['Priority', 176], ['Decision', 590], ['Why, from the impact matrix', 760], ['What changes', 1320]].forEach(([h, x]) => tx(p, `left:${x}px;top:404px;font:400 15px/1 var(--f);color:var(--dim)`, h, 300, 'fd'));
+    PRI.forEach((d, i) => { const y = 440 + i * 68, t = 500 + i * 260;
+      el('hr fd', `left:96px;right:96px;top:${y}px;${d.added ? 'background:rgba(61,205,88,.6)' : ''}`, '', p, t);
+      tx(p, `left:96px;top:${y + 14}px`, ch(d.c, d.k === 'SP' ? 'g' : 'n'), t, 'fd');
+      tx(p, `left:176px;top:${y + 12}px;width:390px;white-space:normal;font:500 19px/1.25 var(--f)`, d.name, t, 'fd');
+      tx(p, `left:590px;top:${y + 12}px`, `<span class="chip ${DECK[d.dec[0]]}" style="font-size:15px">${d.dec[0]}</span>`, t + 120, 'fd');
+      tx(p, `left:760px;top:${y + 12}px;width:530px;white-space:normal;font:400 17px/1.3 var(--f);color:var(--grey)`, d.dec[1], t + 160, 'a');
+      tx(p, `left:1320px;top:${y + 12}px;width:504px;white-space:normal;font:400 17px/1.3 var(--f);color:var(--mid)`, d.dec[2], t + 220, 'a'); });
+    const GR = [['Retain', 'retained', 'rgba(255,255,255,.28)'], ['Modify', 'modified', 'rgba(255,255,255,.72)'], ['Remove', 'removed', ''], ['New', 'added', 'var(--se)']], SW = 72, SG = 6;
+    let x = 1000; GR.forEach(([k, lab, col], g) => { const ds = PRI.filter(d => d.dec[0] === k), t = 200 + g * 150;
+      tx(p, `left:${x}px;top:282px;font:400 16px/1 var(--f);color:${k === 'New' ? 'var(--se)' : 'var(--grey)'}`, `<b style="font:600 22px/1 var(--f);color:${k === 'New' ? 'var(--se)' : 'var(--white)'};margin-right:6px">${ds.length}</b>${lab}`, t, 'fd');
+      if (!ds.length) { el('fd', `position:absolute;left:${x}px;top:314px;width:${SW}px;height:14px;border-radius:4px;border:1px dashed rgba(255,255,255,.3)`, '', p, t); x += SW + SG + 22; return; }
+      ds.forEach((d, j) => { el('gw', `position:absolute;left:${x}px;top:314px;width:${SW}px;height:14px;border-radius:4px;background:${col}`, '', p, t + 60 + j * 70);
+        tx(p, `left:${x}px;top:338px;font:500 14px/1 var(--f);letter-spacing:.04em;color:var(--dim)`, d.c, t + 100 + j * 70, 'fd'); x += SW + SG; });
+      x += 22; });
+    console.assert(x - 22 <= 1824, 'review bar fits'); };
+
+  ORDER.forEach(([t, d], k) => { const p = pans[Q + k];
+    if (t === 'sw') buildSW(p); else if (t === 'map') buildMap(p); else if (t === 'hb') buildHB(p); else if (t === 'rv') buildRV(p); else buildOP(p, d); });
+
+  /* ---------------- helpers ---------------- */
+  let timers = [], busy = false;
+  const later = (ms, fn) => timers.push(setTimeout(fn, ms)), clear = () => { timers.forEach(clearTimeout); timers = []; };
+  const count = (e, ms) => { const to = +e.dataset.to, dec = +e.dataset.dec, f = e.dataset.fmt, t0 = performance.now(); e._c = (e._c || 0) + 1; const id = e._c;
+    const step = now => { if (e._c !== id) return; const p = Math.min(1, (now - t0) / ms), q = 1 - Math.pow(1 - p, 3); e.textContent = f.replace('{}', (to * q).toFixed(dec)); if (p < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); };
+  const fin = e => { e._c = (e._c || 0) + 1; e.textContent = e.dataset.fmt.replace('{}', (+e.dataset.to).toFixed(+e.dataset.dec)); };
+  const instant = (node, fn) => { const t = node._in || node; t.classList.add('noanim'); fn(); t.getBoundingClientRect(); requestAnimationFrame(() => requestAnimationFrame(() => t.classList.remove('noanim'))); };   // on a slide: freezes its content, never the slide's own move
+  const hid = (root, on) => $$('.a,.row,.kp .c,.tb,.cl', root).forEach(e => e.classList.toggle('h', on));
+  const un = (sel, root) => $$(sel, root).forEach(e => e.classList.remove('h'));
+
+  /* chart slides: every element carries data-t = the moment (ms) it appears */
+  const timed = (p, extra = {}) => ({
+    done() { $$('[data-t]', p).forEach(e => e.classList.remove('h')); $$('[data-to]', p).forEach(fin); extra.done && extra.done(); },
+    play() { const els = $$('[data-t]', p); let end = 0;
+      instant(p, () => { els.forEach(e => e.classList.add('h')); extra.reset && extra.reset(); });
+      els.forEach(e => { const t = +e.dataset.t; end = Math.max(end, t); later(t, () => { e.classList.remove('h'); if (e.dataset.to) count(e, 1100); }); });
+      extra.play && extra.play(); later(end + 1000, () => busy = false); } });
+
+  /* ---------------- each slide: its finished look, and how it builds ---------------- */
+  const p1 = pans[1];
+  const S = [
+    { done() { hid(pans[0], false); }, play() { instant(pans[0], () => hid(pans[0], true)); later(500, () => hid(pans[0], false)); later(2200, () => busy = false); } },
+    { done() { hid(p1, false); rows.forEach(g => g.classList.add('live')); $$('[data-to]', p1).forEach(fin); d2.forEach((d, k) => { cls(d, k < 30 ? 'lit' : ''); put(d, d._g); }); },
+      play() {
+        instant(p1, () => { hid(p1, true); rows.forEach(g => g.classList.remove('live')); d2.forEach(d => { cls(d, ''); put(d, [SX, SY], 0); }); });
+        later(250, () => un('.lead', p1)); later(450, () => un('.box', p1));
+        $$('.kp .c', p1).forEach((c, i) => later(700 + i * 140, () => { c.classList.remove('h'); count($('.n', c), 1300); }));
+        later(900, () => un('#node', p1));
+        rows.forEach((g, i) => later(1050 + i * 90, () => { g.classList.remove('h'); later(1100, () => g.classList.add('live')); }));
+        later(1800, () => d2.forEach((d, k) => later(k * 8, () => put(d, d._g))));                                  // the dots leave along the data-centre cable
+        later(3300, () => { d2.slice(0, 30).forEach((d, k) => later(k * 28, () => cls(d, 'lit'))); un('#dcn', p1); count($('#dcn'), 1000); });
+        later(3800, () => un('.dct,.src', p1)); later(4800, () => busy = false); } },
+    timed(pans[2]),
+    timed(pans[3]), timed(pans[4]), timed(pans[5]), timed(pans[6]), timed(pans[7]),
+    timed(pans[8], {                                                                                   // the dots arrive scattered and settle into their force
+      done() { d9.forEach((d, k) => { cls(d, t9[k].c); put(d, t9[k].p); }); },
+      reset() { d9.forEach((d, k) => { cls(d, ''); put(d, sc9[k], 0); }); },
+      play() { later(500, () => d9.forEach((d, k) => later(k * 4, () => d.style.opacity = 1)));
+        later(1200, () => d9.forEach((d, k) => later(k * 9, () => { cls(d, t9[k].c); put(d, t9[k].p); }))); } }),
+    timed(pans[9], {                                                                                   // PESTEL: the same dots, now weighed by macro factor
+      done() { d10.forEach((d, k) => { cls(d, t10[k].c); put(d, t10[k].p); }); },
+      reset() { d10.forEach((d, k) => { cls(d, ''); put(d, sc10[k], 0); }); },
+      play() { later(500, () => d10.forEach((d, k) => later(k * 4, () => d.style.opacity = 1)));
+        later(1200, () => d10.forEach((d, k) => later(k * 9, () => { cls(d, t10[k].c); put(d, t10[k].p); }))); } }),
+    timed(pans[10]), timed(pans[11]), timed(pans[12]), timed(pans[13], { reset() { pans[13]._reset14(); }, done() { pans[13]._reset14(); } }), timed(pans[14]), timed(pans[15]), timed(pans[16]), ...pans.slice(17).map(p => timed(p)),
+  ];
+
+  /* ---------------- detail pages: under each slide, one scroll (or ↓) away ----------------
+     every figure is either on the v21 slides or simple arithmetic on them (marked ≈ and explained in the source line) */
+  const card = (h, sub, body, css = '') => `<div class="cd"${css ? ` style="${css}"` : ''}><h3>${h}${sub ? `<span>${sub}</span>` : ''}</h3>${body}</div>`;
+  const tb = (cols, rows, k = '') => `<div class="tb2 ${k}" style="grid-template-columns:${cols}">${rows.map(r => r.map(c => Array.isArray(c) ? `<div class="${c[1]}">${c[0]}</div>` : `<div>${c}</div>`).join('')).join('')}</div>`;
+  const nums = (cols, items) => `<div class="nums" style="grid-template-columns:${cols}">${items.map(([b, s, k]) => `<div><b class="${k || ''}">${b}</b><span>${s}</span></div>`).join('')}</div>`;
+  const head = (i, kk, h2, lead) => `<div class="meta">Schneider Electric<span>${kk}</span></div><div class="pn">Detail · ${String(i + 1).padStart(2, '0')} of ${pans.length}</div><h2>${h2}</h2><p class="lead">${lead}</p>`;
+  const foot = (t, i) => `<div class="src"><span>${t}</span><span>${i + 1}</span></div>`;
+
+  const ROUTE = [['Schneider Electric', 'The company in one image'], ['Who is Schneider', 'What does Schneider actually sell?'], ['Where we compete', 'Who does Schneider meet in each arena?'],
+    ['An industry that creates value', 'Which industries create value, and where does ours sit?'], ['Best balance, highest return', 'Why does Schneider earn more on its capital than its rivals?'],
+    ['Competitive advantage', 'How large is the advantage, and where does it come from?'], ['Vision &amp; mission', 'How far is Schneider from its 2030 purpose?'],
+    ['Level of ambition', 'How far does Schneider want to go by 2030?'], ['Five forces', 'How hard do the five forces push on profits?'],
+    ['PESTEL', 'Which macro forces raise prices, and which raise costs?'], ['Market matrix', 'Where will Schneider grow next?'], ['Headlines from the future', 'Two feed volume, three hit price and margin'],
+    ['Value chain', 'Which activities deliver the promise to the customer?'], ['Operating model', 'What operating model makes the promise possible?'],
+    ['Resources &amp; competences', 'How strong is Schneider where it matters?'], ['Strategic importance × strength', 'Where are the key strengths and weaknesses?'],
+    ['Strengths &amp; weaknesses', 'What makes Schneider strong, and what holds it back?'], ['Conclusion', 'Its advantage is the installed base, not price'], ...NEWS.map(n => [n[4].replace('&', '&amp;'), n[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()]), ['Appendix', 'Sources and definitions']];
+  const routeCol = (a, b) => ROUTE.slice(a, b).map(([n, q], k) => `<div class="rt"><em>${String(a + k + 1).padStart(2, '0')}</em><b>${n}</b></div>`).join('');
+
+  const ARL = COLS.map((c, ci) => { const who = M.slice(1).filter(r => r[1][ci] > 0);
+    return [c.replace('&', '&amp;'), [who.length, 'w r'], who.map(r => r[1][ci] === 2 ? `<span style="color:var(--white)">${r[0]}</span>` : `${r[0]} ○`).join(', ')]; });
+
+  const FORCES = [['Competitive rivalry', '35% · High', 'g', 'Siemens is present in all seven arenas and 7 of 10 rivals play in data centres. The M&amp;A race: Schneider bought Motivair (liquid cooling) and AiDASH ($350m), and agreed to buy Cognite ($3.1bn, 2026).'],
+    ['Supplier power', '20% · Medium', 'w', 'Raw materials and tariffs cost €255m of 2025 profit. Schneider buys €19bn a year from 50,000+ suppliers and makes 90% of what it sells in the same region.'],
+    ['Buyer power', '20% · Medium', 'w', 'Data centres are 30% of orders, so a few large buyers weigh heavily; but the US is 15% short of transformers in 2026 and backlogs are long.'],
+    ['Threat of new entrants', '15% · Low', '', 'Certifications, decades of R&amp;D and the installed base keep newcomers out. The one to watch: US imports of Chinese automation ×4 since 2023.'],
+    ['Threat of substitutes', '10% · Low', '', 'No alternative to switchgear or UPS. AI factories moving to 800V DC change the architecture, and Schneider aligns its designs with NVIDIA.']];
+
+  /* ---------------- part 2 detail pages ---------------- */
+  const hbi = v => `<i class="hbi" style="--v:${v}"></i>`;
+  const hzS = d => [1, 2, 3].map(h => `<span style="font-size:24px;line-height:18px">${d.hz[h] === 'm' ? '●' : d.hz[h] === 'a' ? '○' : '<span style="color:var(--dim)">–</span>'}</span>`);
+  const mates = d => d.k === 'SP' ? PRI.filter(e => e.k === 'E' && e.hz[d.c[2]]).map(e => e.c) : PRI.filter(s => s.k === 'SP' && d.hz[s.c[2]]).map(s => s.c);
+  const opDet = (d, i) => head(i, `${d.c} · ${decTxt[d.dec[0]]}`, `What ${d.c}<br><i>moves</i>, and why`, 'The measures it moves most (slide 28), the findings behind it (slide 19), <b>and what the review changed.</b>') +
+    `<div class="cards" style="grid-template-columns:1.15fr 1fr 1fr">` +
+    card('Measures it moves', 'impact by 2030', tb('1fr 200px', MEAS.map((m, c) => [m, HB[d.c][c]]).filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1] || (b[1] === colMax(PRI)[MEAS.indexOf(b[0])]) - (a[1] === colMax(PRI)[MEAS.indexOf(a[0])])).slice(0, 9)
+      .map(([m, v]) => [`${hbi(v)}<span style="color:var(--white);margin-left:12px">${m[1]}</span>`, [`${m[2]} → ${m[3]}`, 'r']]), 'tight f18 st')) +
+    card('Findings behind it', 'slide 19', tb('48px 1fr', d.link.map(c => [[c, c[0] === 'O' || c[0] === 'S' ? 'g' : ''], `<span style="color:var(--white)">${SWF(c)[1]}</span>`]), 'tight f18 st')) +
+    card(`Review: ${d.dec[0].toLowerCase()}`, 'slide 29', `<p><b>Why.</b> ${d.dec[1]}</p><p><b>What changes.</b> ${d.dec[2]}</p><p><b>Works with.</b> ${mates(d).join(', ')}${d.cap ? `. Built on the ${d.lev ? 'levers' : 'capability'} <b>${d.cap}</b> (slide 14).` : '.'}</p>`) +
+    `</div>` + foot('Source: impact matrix (slide 28), findings (slide 19), review (slide 29). ' + d.src, i);
+  const NEWDET = ORDER.map(([t, d], k) => { const i = Q + k;
+    if (t === 'sw') return head(i, 'From analysis to priorities', 'Every finding,<br><i>with its slide</i>', 'Seventeen findings, each with the number behind it and the slide it comes from. <b>Five were added in the review; T3 was made concrete.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr 1fr">` + Object.keys(SWOT).map(key => card(SWH[key][0], 'slide', tb('46px 1fr 34px', SWOT[key].map(([c, l, n, a, sl]) => [[c, 'OS'.includes(c[0]) ? 'g' : ''], `<span style="color:var(--white)">${l}</span><small>${n}${a ? ' · ' + (a === 2 ? 'sharpened' : 'added') : ''}</small>`, [sl, 'r']]), 'tight f18 st'))).join('') +
+      `</div>` + foot('Source: slides 3, 9–10, 12–13, 15 and 17 of this review. Part 1 of the group work listed O1–O3, T1–T3, S1–S3 and W1–W3.', i);
+    if (t === 'map') return head(i, 'Priorities on three horizons', 'How the enabling<br>priorities were <i>built</i>', 'Each capability of the operating model, with its three levers, became one enabling priority. <b>Service gets its own: it is the one activity where Schneider is behind.</b>') +
+      `<div class="cards" style="grid-template-columns:1.7fr 1fr">` +
+      card('Capability → enabling priority', 'slide 14', tb('56px 1.6fr 1.15fr 44px 44px 44px', [[['', 'hd2'], ['Enabling priority', 'hd2'], ['Capability · levers', 'hd2'], ['H1', 'hd2 r'], ['H2', 'hd2 r'], ['H3', 'hd2 r']],
+        ...P7.filter(d => d.k === 'E').map(d => [[d.c, 'g'], `<span style="color:var(--white)">${d.name}</span><small>answers ${d.link.join(', ')}</small>`, d.cap, ...hzS(d).map(s => [s, 'r g'])])], 'roomy st')) +
+      card('Order of execution', '', '<p><b>E2 first:</b> all three horizons depend on shared data and software.</p><p><b>E1 and E4</b> do the work with customers.</p><p><b>E3</b> protects the margin that pays for the rest.</p><p>Across all four: margin and price realisation join sustainability in managers’ pay, so W1 belongs to managers, not only to sales.</p>') +
+      `</div>` + foot('Source: operating model (slide 14) and value chain (slide 13); ● main horizon, ○ also supports.', i);
+    if (t === 'hb') { const mx = colMax(P7), by = c => P7.filter(d => HB[d.c][c] === mx[c]).map(d => d.c).join(', ');
+      const half = (a, b) => tb('36px 1fr 92px', MEAS.slice(a, b).map((m, j) => { const c = a + j; return [hbi(mx[c]), `<span style="color:${mx[c] < 3 ? 'var(--copper)' : 'var(--white)'}">${m[1]}</span><small>${m[0]}</small>`, [by(c), 'r w']]; }), 'tight f18 st');
+      return head(i, 'Impact on the measures of success', 'Where the push<br><i>is missing</i>', 'For each measure, the strongest push any of the seven priorities gives it. <b>Three measures stop at a half ball.</b>') +
+        `<div class="cards" style="grid-template-columns:1fr 1fr 1fr">` + card('Strongest push, 1 of 2', 'before E5', half(0, 7)) + card('Strongest push, 2 of 2', 'before E5', half(7, 14)) +
+        card('How to read it', '0–4', '<p><b>0 to 4:</b> none, low, medium, high, main driver. Direct impact by 2030 only.</p><p><b>The hardest call.</b> SP3 on energy access: two pilots by 2028 cannot add 33M people by 2030, so it is a ½, not a full ball.</p><p><b>The gaps.</b> Learning &amp; growth has no owner, so the review adds E5. Energy access is run by the company programme; SP3 tests whether it can pay for itself.</p>') +
+        `</div>` + foot('Source: group assessment; targets from slides 7–8 and the one-pagers. Direct impact by 2030 only.', i); }
+    if (t === 'rv') return head(i, 'Review of the priorities', 'The revised map,<br><i>with E5</i>', 'Three strategic and five enabling priorities after the review. <b>What we left as it is, and why.</b>') +
+      `<div class="cards" style="grid-template-columns:1.5fr 1fr">` +
+      card('Priority × horizon', 'after the review', tb('60px 1.7fr 52px 52px 52px', [[['', 'hd2'], ['Priority', 'hd2'], ['H1', 'hd2 r'], ['H2', 'hd2 r'], ['H3', 'hd2 r']],
+        ...PRI.map(d => [[d.c, d.added ? 'g' : 'w'], `<span style="color:${d.added ? 'var(--se)' : 'var(--white)'}">${d.name}</span>`, ...hzS(d).map(s => [s, 'r g'])])], 'f18 st')) +
+      card('Left as it is', '', '<p><b>ROCE, ¾ at most.</b> At 15.1% it is already inside the 15–20% range (slide 8), and the margin step lifts it.</p><p><b>Energy access, ½.</b> The company programme already reaches 67M of 100M; SP3 tests whether access can become a business.</p><p><b>Nothing removed.</b> Every H1 and H2 priority is at least a ¾ driver of one measure.</p>') +
+      `</div>` + foot('Source: impact matrix (slide 28); level of ambition (slide 8); ● main horizon, ○ also supports.', i);
+    return opDet(d, i); });
+  const DET = [
+    head(0, 'The route', 'Where it competes,<br>why it wins, <i>where<br>it should go</i>', 'A strategic review in slides 2–18, then the priorities in slides 19–30. <b>Every number carries its source on the slide;</b> the appendix holds the definitions.') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr 1fr">${card('Slides 01–08', 'review', routeCol(0, 8))}${card('Slides 09–16', 'review', routeCol(8, 16))}${card('Slides 17–24', 'priorities from 19', routeCol(16, 24))}${card('Slides 25–31', 'priorities, appendix', routeCol(24, 31))}</div>` +
+      foot('Structure of the group presentation, Strategy (ESCP Business School).', 0),
+
+    head(1, 'Who is Schneider', 'The key figures,<br><i>in euros</i>', 'Margins and cash in absolute terms, <b>the two businesses behind them</b>, and the scale that lets Schneider serve customers locally.') +
+      `<div class="cards" style="grid-template-columns:1.2fr 1fr 1fr">` +
+      card('FY2025 in euros', '≈ group calculation', tb('1.25fr .9fr 1.35fr', [['Revenue', ['€40.2bn', 'w r'], ['+8.9% organic', 'r']], ['Adj. EBITA', ['≈€7.5bn', 'w r'], ['18.7% of revenue', 'r']],
+        ['Net income', ['≈€4.1bn', 'w r'], ['free cash flow ÷ 111%', 'r']], ['Free cash flow', ['€4.6bn', 'w r'], ['111% of net income', 'r']], ['Software &amp; services', ['≈€7.6bn', 'w r'], ['19%, target ~25% by 2030', 'r']]]) +
+        '<p style="margin-top:18px"><b>Every euro of profit turns into €1.11 of free cash flow:</b> earnings are cash, not paper.</p>') +
+      card('Two businesses, two speeds', 'FY2025', '<p style="margin-bottom:6px;color:var(--mid)">Organic growth</p>' +
+        '<div class="hbar">Energy Management<i class="g" style="width:83%"></i><em>+10%</em></div><div class="hbar">Industrial Automation<i style="width:25%"></i><em>+3%</em></div>' +
+        '<p style="margin:22px 0 6px;color:var(--mid)">Adj. EBITA margin</p>' +
+        '<div class="hbar">Energy Management<i class="g" style="width:87%"></i><em>21.8%</em></div><div class="hbar">Industrial Automation<i style="width:57%"></i><em>14.2%</em></div>' +
+        '<p style="margin-top:22px">Industrial Automation grows slower and earns less: <b>it pulls down the group margin</b>, the number the 2030 plan wants to raise.</p>') +
+      card('Scale that serves locally', '2025', nums('1fr 1fr', [['100+', 'countries'], ['~160,000', 'employees'], ['~1M', 'partners sell, install, support'], ['160+', 'factories'], ['90%', 'made in the region where it is sold', 'g'], ['4', 'regional hubs, two businesses']])) +
+      `</div>` + foot('Source: Schneider Electric FY2025 results (26 Feb 2026), 2025 URD, Capital Markets Day (Dec 2025). ≈ group calculation: EBITA = 18.7% × revenue; net income = free cash flow ÷ 1.11; software &amp; services = 19% × revenue.', 1),
+
+    head(2, 'Where we compete', 'Who sits in<br><i>each arena</i>', 'The matrix read column by column: <b>specialists stay in one or two arenas</b>, only Siemens follows Schneider everywhere, partly in e-mobility.') +
+      `<div class="cards" style="grid-template-columns:1.8fr 1fr">` +
+      card('Rivals in each arena', 'white = core&nbsp;&nbsp;&nbsp;○ = partial', tb('240px 56px 1fr', [[['Arena', 'hd2'], ['Rivals', 'hd2 r'], ['', 'hd2']], ...ARL.map(([a, n, w]) => [['<span style="color:var(--white)">' + a + '</span>', ''], n, ['<span style="padding-left:24px;display:block;font-size:19px">' + w + '</span>', '']])])) +
+      card('Three kinds of rival', 'arenas, core + partial', '<p><b>Full system.</b> Siemens 6 core + 1 partial, Eaton 3 + 3: almost the same breadth as Schneider, so the fight is integration.</p>' +
+        '<p><b>Multi-arena.</b> Legrand 4, Honeywell 4, Hitachi Energy 3: present in a few arenas, where they overlap with Schneider.</p>' +
+        '<p><b>Specialists.</b> Johnson Controls, Rockwell and Emerson 2; Vertiv and GE Vernova 1: deep in one or two markets, absent elsewhere.</p>' +
+        '<p>Data centres draw <b>7 of 10 rivals</b>; Legrand already makes 26% of its 2025 sales there.</p>') +
+      `</div>` + foot('Source: group assessment from company reports (2025). Siemens includes Smart Infrastructure and Digital Industries Software; data centres are 26% of Legrand’s 2025 sales.', 2),
+
+    head(3, 'An industry that creates value', 'Why the industry<br><i>keeps</i> creating value', 'A spread of +6.6 points means <b>every €100 of capital earns €6.60 a year more than investors ask for.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr">` +
+      card('The arithmetic', 'Damodaran, Jan 2026', '<div class="eq" style="position:static;margin:6px 0 22px"><div>15.6%<span>return</span></div><div style="color:var(--grey)">−</div><div>9.0%<span>cost</span></div><div style="color:var(--grey)">=</div><div style="color:var(--se)">+6.6<span>points</span></div></div>' +
+        '<p>The total market earns +2.0: <b>electrical equipment’s spread is 3.3× the market’s.</b></p><p>Green &amp; renewable energy is at −2.6: <b>growth alone does not create value.</b></p>') +
+      card('Demand outruns supply', '2025–2030', nums('1fr', [['30%', 'of Schneider’s 2025 orders come from data centres, growing more than 10% a year to 2030', 'g'], ['+3.6%', 'a year of power demand, with grid investment rising'], ['15%', 'US transformer shortfall in 2026']])) +
+      card('What could narrow it', 'watch list', nums('1fr', [['−€255m', 'raw materials and tariffs on Schneider’s 2025 profit', 'c'], ['−6%', 'North American data-centre capacity under construction, H2 2025', 'c'], ['×4', 'US imports of Chinese automation since 2023', 'c']])) +
+      `</div>` + foot('Source: Damodaran Online, US industry averages (Jan 2026); Schneider Electric FY2025 results; IEA; CBRE North America Data Center Trends H2 2025; Facilities Dive, Wood Mackenzie, Channel Dive, ARC Advisory, Latitude Media.', 3),
+
+    head(4, 'Best balance, highest return', 'The calculation,<br><i>step by step</i>', 'Return on capital = NOPAT ÷ (equity + net debt), and <b>it splits exactly into margin × turnover.</b>') +
+      `<div class="cards" style="grid-template-columns:1.75fr 1fr">` +
+      card('From the annual report to the curve', '2025, each company’s currency', tb('1.7fr 1fr 1fr 1fr', [[['', 'hd2'], ['Schneider', 'hd2 r'], ['Rockwell', 'hd2 r'], ['Legrand', 'hd2 r']],
+        ['Operating income', ['€6,699m', 'r w'], ['$1,073m', 'r w'], ['€1,808.5m', 'r w']], ['Tax rate', ['23.5%', 'r'], ['18.3%', 'r'], ['25.9%', 'r']],
+        ['NOPAT = income × (1 − tax)', ['€5,125m', 'r w'], ['$877m', 'r w'], ['€1,340m', 'r w']], ['Equity', ['€17,527m', 'r'], ['$3,654m', 'r'], ['€7,334m', 'r']], ['Net debt', ['€13,721m', 'r'], ['$2,756m', 'r'], ['€4,222.6m', 'r']],
+        ['ROIC = NOPAT ÷ capital', ['16.4%', 'r g'], ['13.7%', 'r w'], ['11.6%', 'r w']], ['= margin × turnover', ['12.8% × 1.28×', 'r'], ['10.5% × 1.30×', 'r'], ['14.1% × 0.82×', 'r']]])) +
+      card('Reading the curves', 'what it would take', '<p><b>Legrand</b> would need to turn its capital 1.16×, not 0.82×, to match Schneider at its own 14.1% margin.</p>' +
+        '<p><b>Rockwell</b> would need a 12.6% margin, not 10.5%, at its 1.30× turnover.</p>' +
+        '<p><b>Schneider:</b> at 1.28×, each extra point of margin adds 1.28 points of return on capital. The 2030 margin goal is also a return goal.</p>') +
+      `</div>` + foot('Source: 2025 annual reports, group calculations. ROIC = operating income × (1 − tax rate) ÷ (equity + net debt). Rockwell’s fiscal year ends September 2025. Schneider inputs: scenario, as on slide 6.', 4),
+
+    head(5, 'Competitive advantage', 'What the<br><i>goodwill</i> hides', 'The headline return carries the price of past acquisitions. <b>Without it, the business on the ground earns ≈47%.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr">` +
+      card('Spread over the cost of capital', 'points', tb('1.3fr 1fr 1fr 1fr', [[['', 'hd2'], ['ROIC', 'hd2 r'], ['WACC', 'hd2 r'], ['Spread', 'hd2 r']],
+        [['<span style="color:var(--se);font-weight:600">Schneider</span>', ''], ['16.4%', 'r w'], ['8.3%', 'r'], ['+8.1', 'r g']], ['Rockwell', ['13.7%', 'r w'], ['8.7%', 'r'], ['+5.0', 'r w']], ['Legrand', ['11.6%', 'r w'], ['7.3%', 'r'], ['+4.3', 'r w']]]) +
+        '<p style="margin-top:20px">Schneider’s spread is <b>1.6× Rockwell’s</b> and almost twice Legrand’s.</p>') +
+      card('Bought, not built', 'goodwill', nums('1fr', [['€25.1bn', 'of €36.8bn of capital is goodwill: about two thirds, the price of growth by acquisition', 'c']]) +
+        '<div style="position:relative;height:14px;margin:18px 0 22px;border-radius:3px;background:rgba(255,255,255,.12)"><div style="position:absolute;left:0;top:0;bottom:0;width:68.2%;border-radius:3px;background:var(--copper)"></div></div>' +
+        '<p>Strip it out and the return is <b>≈47%, 3× the industry’s 15.6%</b>: 15.1% × €36.8bn ÷ (€36.8bn − €25.1bn). With it, reported ROCE is 15.1%, against ABB’s 25.3%.</p>') +
+      card('The base that keeps selling', 'installed base', nums('1fr', [['62%', 'of revenue from the installed base and connected products, growing 15%', 'g'], ['~1M', 'partners in 100+ countries sell, install and support it'], ['~16%', 'of the installed base is serviced: room the advantage has not used yet', 'c']])) +
+      `</div>` + foot('Source: 2025 annual reports, group calculations; Schneider Electric FY2025 results; ABB Q4 2025 results (ROCE 25.3%); Damodaran, electrical equipment. Goodwill share on capital employed as reported (€36.8bn).', 5),
+
+    head(6, 'Vision &amp; mission', 'Seven KPIs,<br><i>what is left to do</i>', 'Progress = latest value ÷ 2030 target. <b>The gap is what the next five years must deliver.</b>') +
+      `<div class="cards" style="grid-template-columns:2.1fr 1fr">` +
+      card('Seven KPIs against 2030', 'progress = latest ÷ target', tb('2.2fr 1fr 1fr .9fr 1.1fr', [[['KPI', 'hd2'], ['Latest', 'hd2 r'], ['2030', 'hd2 r'], ['Progress', 'hd2 r'], ['Still to go', 'hd2 r']],
+        ...[['Climate', 'customer CO₂ saved &amp; avoided', '913 Mt', '1.5 Gt', '61%', '587 Mt', 'g'], ['Access', 'people with energy access', '67M', '100M', '67%', '33M', 'g'], ['Skills', 'young people trained', '1.4M', '3M', '47%', '1.6M', 'w'],
+          ['Circularity', 'offers with circular design', '27%', '100%', '27%', '73 pts', 'w'], ['Efficiency', 'energy saved or electrified', '129 TWh', '1,500 TWh', '9%', '1,371 TWh', 'cu'],
+          ['Digital', 'software with carbon insights', '29%', '100%', '29%', '71 pts', 'w'], ['People', 'employees upskilled each year', '31%', '100%', '31%', '69 pts', 'w']]
+          .map(([k, d, a, b, p, g, c]) => [[`<span style="color:var(--white)">${k}</span><small>${d}</small>`, ''], [a, 'r'], [b, 'r'], [`<span style="${c === 'cu' ? 'color:var(--copper);font-weight:600' : ''}">${p}</span>`, 'r ' + (c === 'cu' ? '' : c)], [g, 'r w']])], 'tight')) +
+      card('Why efficiency lags', 'the mission’s core', '<p>Energy saved or electrified is what customers get from the mission, and <b>it is the furthest from target: 129 of 1,500 TWh.</b></p>' +
+        '<p>It is delivered by services and software on the installed base, and <b>only ~16% of that base is serviced today.</b></p><p>Closing the service gap moves the mission KPI and the margin at the same time.</p>') +
+      `</div>` + foot('Source: Schneider Electric 2025 URD, Integrated Report and se.com/company-mission. Cumulative: CO₂ since 2018, access and training since 2009, energy from 2026. Installed base serviced: group value-chain assessment.', 6),
+
+    head(7, 'Level of ambition', 'Where the <i>2.5 points</i><br>must come from', 'At today’s revenue, +2.5 points of margin is <b>about €1bn more operating profit a year.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr">` +
+      card('The step in euros', 'illustrative', nums('1fr', [['≈€1.0bn', 'more adj. EBITA a year: 2.5% of €40.2bn, before any growth', 'g']]) +
+        '<p style="margin:20px 0 4px;color:var(--mid)">If organic growth stays in range</p>' +
+        tb('1fr 1fr 1fr', [[['Growth a year', 'hd2'], ['2030 revenue', 'hd2 r'], ['EBITA at ≈21.2%', 'hd2 r']], ['+7%', ['≈€56bn', 'r w'], ['≈€12.0bn', 'r w']], ['+10%', ['≈€65bn', 'r w'], ['≈€13.7bn', 'r w']]])) +
+      card('Where the points can come from', 'the levers', '<p><b>Pricing.</b> Net price effect −€179m in 2025: raw materials and tariffs (−€255m) beat price increases.</p>' +
+        '<p><b>Services.</b> Only ~16% of the installed base is serviced.</p><p><b>Mix.</b> Data-centre systems earn less; Industrial Automation earns 14.2% against 21.8% in Energy Management.</p>') +
+      card('Return on capital', 'ROCE, as reported', nums('1fr 1fr', [['15.1%', 'Schneider, inside the 15–20% range', 'g'], ['25.3%', 'ABB, for comparison']]) +
+        '<p style="margin-top:22px">Goodwill is about two thirds of capital (€25.1bn of €36.8bn): <b>the upper half of the range depends on margin earned on the capital already employed.</b></p>') +
+      `</div>` + foot('Source: Schneider Electric FY2025 results (26 Feb 2026); Capital Markets Day (11 Dec 2025); ABB Q4 2025 results. ≈ group calculation: 2.5% × €40.2bn; 2030 revenue = €40.2bn × (1 + growth)⁵, organic, constant currency.', 7),
+
+    head(8, 'Five forces', 'The evidence<br><i>behind each force</i>', 'Weights show how much each force shapes industry profits; <b>the numbers below are what set them.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr">` +
+      card('Weight, intensity and evidence', 'group assessment', tb('330px 200px 1fr', FORCES.map(([n, w, c, t]) => [[`<span style="color:var(--white);font-weight:500">${n}</span>`, ''], [w, c], t]), 'roomy')) +
+      `</div>` + foot('Source: group assessment; Schneider Electric FY2025 results, Capital Markets Day (Dec 2025), H1 2026 results, company announcements; Wood Mackenzie, Channel Dive, ARC Advisory, Latitude Media.', 8),
+
+    head(9, 'PESTEL', 'How the six factors<br><i>add up</i>', '55% of the weight is highly positive for demand, <b>yet every factor carries at least one cost driver.</b>') +
+      `<div class="cards" style="grid-template-columns:1.5fr 1fr 1fr">` +
+      card('Weights and drivers', 'count of ↑ per factor', tb('1.4fr .8fr .8fr .8fr 1.3fr', [[['Factor', 'hd2'], ['Weight', 'hd2 r'], ['Price ↑', 'hd2 r'], ['Cost ↑', 'hd2 r'], ['Net', 'hd2 r']],
+        ...PE.map(([n, w, net, drv]) => [['<span style="color:var(--white)">' + n + '</span>', ''], [w + '%', 'r w'], [drv.filter(d => d[1]).length + ' of ' + drv.length, 'r'], [drv.filter(d => d[2]).length + ' of ' + drv.length, 'r'], [net, 'r ' + (net === 'Highly positive' ? 'g' : net === 'Positive' ? 'w' : '')]]),
+        [['<b style="color:var(--white);font-weight:600">Total</b>', ''], ['100%', 'r w'], [PE.reduce((a, f) => a + f[3].filter(d => d[1]).length, 0) + ' of 13', 'r g'], [PE.reduce((a, f) => a + f[3].filter(d => d[2]).length, 0) + ' of 13', 'r w'], ['', '']]], 'tight')) +
+      card('The numbers behind the drivers', '', nums('1fr 1fr', [['+3.6%', 'power demand a year, IEA', 'g'], ['2.4', 'skilled workers retire for each new one'], ['24,300×', 'warming power of SF₆ against CO₂'], ['−€255m', 'raw materials and tariffs on 2025 profit', 'c']])) +
+      card('What it means', 'for margins', '<p><b>Price.</b> AI data centres and electrification let the industry charge more.</p><p><b>Cost.</b> Tariffs, commodities, labour and compliance push the other way. In 2025 they won: net price −€179m.</p><p>So <b>pricing discipline is the lever</b>, and slide 16 shows it is a key weakness (7 · 3).</p>') +
+      `</div>` + foot('Source: group assessment (weights total 100%); IEA; EU F-gas rules; Schneider Electric 2025 URD and FY2025 results. Counts: drivers marked ↑ on slide 10.', 9),
+
+    head(10, 'Market matrix', 'Each bet,<br><i>in numbers</i>', 'The further from today’s customers and offers, <b>the more Schneider buys the know-how instead of building it.</b>') +
+      `<div class="cards" style="grid-template-columns:2fr 1fr">` +
+      card('Nine cells, one by one', 'customers × offers', tb('1.55fr 1fr .8fr 1.5fr', [[['Move', 'hd2'], ['Customers × offers', 'hd2'], ['Status', 'hd2'], ['Evidence', 'hd2']],
+        ...MM.flatMap((row, i) => row.map(([t, d, s], j) => [['<span style="color:var(--white)">' + (s === 'n' ? 'Unrelated businesses' : t) + '</span>', ''], ['today', 'close', 'new'][i] + ' × ' + ['today', 'close', 'new'][j],
+          [{ g: 'growing', b: 'new bet', o: 'option', n: 'not pursued' }[s], s === 'g' || s === 'b' ? 'g' : ''], d]))], 'tight')) +
+      card('Software is the thread', '', nums('1fr', [['19%', 'of revenue from software &amp; services today, ≈€7.6bn', 'g'], ['~25%', 'target share by 2030'], ['≈$3.45bn', 'committed in 2026 to software know-how: Cognite $3.1bn + AiDASH $350m']])) +
+      `</div>` + foot('Source: Schneider Electric Capital Markets Day (Dec 2025), H1 2026 results, FY2025 results, company announcements. ≈ group calculation: 19% × €40.2bn; $3.1bn + $0.35bn.', 10),
+
+    head(11, 'Headlines from the future', 'What each headline<br><i>would test</i>', 'Each scenario lands on a lever already on the map: <b>the price headlines hit where Schneider is weakest.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr">` +
+      card('Headline, effect and the lever that answers it', 'scenarios, not forecasts', tb('60px 1.25fr 150px 2fr 110px', [[['', 'hd2'], ['Headline', 'hd2'], ['Hits', 'hd2'], ['Which lever answers it', 'hd2'], ['See slide', 'hd2 r']],
+        ...[['AI factories switch to 800V', 1, 'Designs aligned with NVIDIA; liquid cooling through Motivair', '11'], ['The grid runs out of transformers', 1, 'Grid &amp; utilities arena; grid software through AiDASH', '3, 11'],
+          ['The data-centre boom takes a breath', 0, 'Diversified markets: buildings, industry and infrastructure spread the risk', '17'], ['Tariffs outrun the price list', 0, 'Pricing discipline, a key weakness (7 · 3)', '15, 16'],
+          ['Cheap Chinese automation goes global', 0, 'Industrial Automation, already the weak business (+3%, 14.2% margin)', '17']]
+          .map(([h, up, l, s], i) => [['0' + (i + 1), ''], ['<span style="color:var(--white)">' + h + '</span>', ''], [up ? 'VOLUME ↑' : 'PRICE ↓', up ? 'g' : ''], l, [s, 'r w']])], 'roomy')) +
+      `</div>` + foot('Source: Wood Mackenzie; CBRE North America Data Center Trends H2 2025; Channel Dive; ARC Advisory; Latitude Media; Schneider Electric FY2025 results and CMD (Dec 2025).', 11),
+
+    head(12, 'Value chain', 'The proof behind<br><i>each rating</i>', 'Ratings compare Schneider with Siemens, ABB, Eaton and Legrand: <b>only service sits behind.</b>') +
+      `<div class="cards" style="grid-template-columns:1.9fr 1fr">` +
+      card('Activity, rating and evidence', 'group assessment', tb('1.3fr .8fr .7fr 1.9fr', [[['Activity', 'hd2'], ['Rating', 'hd2'], ['Proof', 'hd2 r'], ['', 'hd2']],
+        ...VC.filter(r => r.length > 1).map(([a, v, n, t]) => [['<span style="color:var(--white)">' + a + '</span>', ''], [LVL[v], v === 3 ? 'g' : v === 0 ? '' : 'w'], [`<span style="${v === 0 ? 'color:var(--copper)' : ''}">${n}</span>`, 'r w'], ['<span style="padding-left:20px;display:block">' + t + '</span>', '']])], 'tight')) +
+      card('Why service is the gap that matters', '', nums('1fr', [['~16%', 'of the installed base is serviced', 'c'], ['62%', 'of revenue comes from the installed base and connected products', 'g']]) +
+        '<p style="margin-top:18px">Lifecycle services score 9 for relevance and 4 for strength: <b>the widest gap on slide 15</b>, and the reason the efficiency KPI is at 9%.</p>') +
+      `</div>` + foot('Source: group assessment; Gartner Supply Chain Top 25 (2023–2026, Siemens #15); WEF Global Lighthouse Network; Schneider Electric FY2025 results and CMD (Dec 2025).', 12),
+
+    head(13, 'Operating model', 'Lever by lever,<br><i>link by link</i>', 'A rival who copies one lever gets one of the three links a capability needs: <b>the fit, not any single lever, is the moat.</b>') +
+      `<div class="cards" style="grid-template-columns:1.8fr 1fr">` +
+      card('Six levers and what they feed', 'S-L-O-P-T-M', tb('56px 1fr 1.25fr 1.9fr', [[['', 'hd2'], ['Lever', 'hd2'], ['Evidence', 'hd2'], ['Feeds', 'hd2']],
+        ...OL.map(([c, n, d]) => [[c, 'g'], ['<span style="color:var(--white)">' + n + '</span>', ''], d, OC.map((x, q) => x[1].includes(c) ? ['Connected systems', 'Regional supply chain', 'Partner reach', 'Lifecycle services'][q] : '').filter(Boolean).join(' · ')])])) +
+      card('Why it is hard to copy', 'activity-system fit', '<p><b>Location and People</b> feed three capabilities each: they carry the system.</p><p><b>Organisation and Management systems</b> feed one each: the easiest pieces to copy, and worth little alone.</p><p>Every capability needs three levers at once, so <b>copying the system means copying most of the company.</b></p>') +
+      `</div>` + foot('Framework: session 5 (S-L-O-P-T-M) and Porter’s activity-system fit. Data: Schneider Electric FY2025 results, CMD (Dec 2025), 2025 Sustainable Development Report. Links as on slide 14.', 13),
+
+    head(14, 'Resources &amp; competences', 'The gaps,<br><i>ranked</i>', 'Gap = relevance − strength. <b>The two widest gaps are lifecycle services and pricing.</b>') +
+      `<div class="cards" style="grid-template-columns:1.8fr 1fr">` +
+      card('Every resource and competence, by gap', 'relevance − strength', tb('64px 1.9fr .8fr .8fr .7fr', [[['', 'hd2'], ['', 'hd2'], ['Relevance', 'hd2 r'], ['Strength', 'hd2 r'], ['Gap', 'hd2 r']],
+        ...[...RC].sort((a, b) => (b[2] - b[3]) - (a[2] - a[3])).map(([c, n, r, s]) => [[c, 'g'], ['<span style="color:var(--white)">' + n + '</span>', ''], [r, 'r'], [s, 'r'], [`<span style="${r - s >= 4 ? 'color:var(--copper);font-weight:600' : ''}">${r - s > 0 ? '+' + (r - s) : r - s === 0 ? '0' : '−' + (s - r)}</span>`, 'r w']])], 'tight')) +
+      card('How to read the scores', '0–10', '<p><b>Relevance</b> is measured against the promise: helping customers use energy better.</p><p><b>Strength</b> is relative to Siemens, ABB, Eaton, Legrand and Honeywell.</p><p>A negative gap means strength above what the promise needs: <b>AVEVA (R4) is the clearest case.</b></p>') +
+      `</div>` + foot('Source: group assessment, scores as on slide 15. Evidence: Schneider Electric FY2025 results, Gartner Supply Chain Top 25, Capital Markets Day (Dec 2025).', 14),
+
+    head(15, 'Strategic importance × strength', 'Every point,<br><i>every quadrant</i>', 'Quadrants cut at 5 on both axes. <b>By the scores, seven items are key strengths.</b>') +
+      `<div class="cards" style="grid-template-columns:1.6fr 1fr">` +
+      card('Quadrant by quadrant', 'from the slide 15 scores', tb('1fr 2.4fr', [[['<span style="color:var(--se);font-weight:600">Key strengths</span>', ''], QD.ks.map(c => c + ' ' + RC.find(r => r[0] === c)[1]).join(' · ')],
+        [['<span style="color:var(--copper);font-weight:600">Key weaknesses</span>', ''], QD.kw.map(c => c + ' ' + RC.find(r => r[0] === c)[1]).join(' · ')],
+        [['<span style="color:var(--white)">Superfluous strengths</span>', ''], QD.sf.map(c => c + ' ' + RC.find(r => r[0] === c)[1]).join(' · ')], [['<span style="color:var(--white)">Zone of irrelevance</span>', ''], QD.ir.map(c => c + ' ' + RC.find(r => r[0] === c)[1]).join(' · ')]], 'roomy')) +
+      card('The borderline cases', '', '<p><b>R&amp;D (C3), 9 · 6</b> is the weakest key strength: 5.9% of sales against Siemens’ 8.3%. Two points less and it would be a key weakness.</p><p><b>Energy software (R3), 9 · 8</b> is the software side of the ecosystem, and belongs with the strengths to protect.</p>') +
+      `</div>` + foot('Source: group assessment; scores from slide 15, quadrants cut at 5 (session 5).', 15),
+
+    head(16, 'Strengths &amp; weaknesses', 'The weaknesses,<br><i>measured</i>', 'Each weakness against the best rival or the other business: <b>all four touch the 2030 margin or the return on capital.</b>') +
+      `<div class="cards" style="grid-template-columns:1.25fr 1fr">` +
+      card('Side by side', 'FY2025', [['ROCE', 'Schneider', 15.1, 'ABB', 25.3, 30, '%'], ['EBITA margin: Schneider adjusted, ABB operational', 'Schneider', 18.7, 'ABB', 19.0, 25, '%'], ['Organic growth', 'Ind. Automation', 3, 'Energy Mgmt', 10, 12, '%'], ['Adj. EBITA margin', 'Ind. Automation', 14.2, 'Energy Mgmt', 21.8, 25, '%']]
+        .map(([h, a, va, b, vb, mx, u]) => `<p style="margin:10px 0 2px;color:var(--mid);font-size:19px">${h}</p><div class="hbar">${a}<i class="${a === 'Schneider' || a === 'Ind. Automation' ? '' : 'g'}" style="width:${va / mx * 100}%;background:var(--copper)"></i><em>${h === 'Organic growth' ? '+' + va : va.toFixed(1)}${u}</em></div><div class="hbar">${b}<i style="width:${vb / mx * 100}%"></i><em>${h === 'Organic growth' ? '+' + vb : vb.toFixed(1)}${u}</em></div>`).join('')) +
+      card('The price side of 2025', '≈ implied', nums('1fr', [['−€255m', 'raw materials and tariffs', 'c'], ['≈+€76m', 'recovered through price increases', 'g'], ['−€179m', 'net price effect on profit', 'c']]) +
+        '<p style="margin-top:16px">Prices rose, but by less than a third of the cost push: <b>profit came from volume.</b></p>') +
+      `</div>` + foot('Source: Schneider Electric FY2025 results (26 Feb 2026); ABB Q4 2025 results. ≈ group calculation: −€179m − (−€255m) = +€76m; 76 ÷ 255 = 30%.', 16),
+
+    head(17, 'Conclusion', 'The argument<br><i>on one page</i>', 'Three questions, the slides that answer them, <b>and the number to remember from each.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr 1fr 1fr">` +
+      card('Where it competes', 'slides 2–3, 9–10', tb('48px 1fr', [[['02', 'g'], '€40.2bn of revenue across seven arenas'], [['03', 'g'], 'Only Siemens is in all seven arenas'], [['09', 'g'], 'Rivalry carries 35% of the weight'], [['10', 'g'], '55% of macro weight highly positive']])) +
+      card('Why it wins', 'slides 4–6, 13–14', tb('48px 1fr', [[['04', 'g'], 'Industry spread +6.6 pts, 3.3× the market'], [['05', 'g'], 'ROIC 16.4% = 12.8% × 1.28×'], [['06', 'g'], '≈47% excluding goodwill'], [['13', 'g'], 'Supply chain #1 at Gartner'], [['14', 'g'], '12 links, 3 per capability']])) +
+      card('Where it should go', 'slides 7–8, 11–12, 16', tb('48px 1fr', [[['07', 'g'], 'Efficiency only 9% of its 2030 target'], [['08', 'g'], '+2.5 pts of margin ≈€1bn a year'], [['11', 'g'], 'Cognite $3.1bn, AiDASH $350m'], [['12', 'g'], 'Tariffs: net price −€179m'], [['16', 'g'], 'Fix pricing (7 · 3) and services (9 · 4)']])) +
+      `</div>` + foot('Source: slides 2–17 of this review.', 17),
+
+    ...NEWDET,
+
+    head(pans.length - 1, 'Appendix', 'The calculations<br><i>behind the figures</i>', 'Ratios and the ≈ figures of the detail pages, with their inputs. <b>Nothing here is new data.</b>') +
+      `<div class="cards" style="grid-template-columns:1fr">` +
+      card('Figure, formula, result', 'inputs from the slides cited', tb('1.3fr 2.3fr .8fr', [[['Figure', 'hd2'], ['Formula', 'hd2'], ['Result', 'hd2 r']],
+        ['ROIC Schneider (scenario)', '€6,699m × (1 − 23.5%) ÷ (€17,527m + €13,721m)', ['16.4%', 'r g']], ['ROIC Rockwell', '$1,073m × (1 − 18.3%) ÷ ($3,654m + $2,756m)', ['13.7%', 'r w']],
+        ['ROIC Legrand', '€1,808.5m × (1 − 25.9%) ÷ (€7,334m + €4,222.6m)', ['11.6%', 'r w']], ['Spread, electrical equipment', '15.6% − 9.0%', ['+6.6 pts', 'r w']],
+        ['Progress, efficiency', '129 TWh ÷ 1,500 TWh', ['9%', 'r w']], ['2030 margin', '18.7% + 2.5 pts', ['≈21.2%', 'r w']], ['Margin step in euros', '2.5% × €40.2bn', ['≈€1.0bn', 'r w']],
+        ['Goodwill share of capital', '€25.1bn ÷ €36.8bn', ['68%', 'r w']], ['ROCE excluding goodwill', '15.1% × €36.8bn ÷ (€36.8bn − €25.1bn)', ['≈47%', 'r w']], ['Schneider margin × turnover', '€5,125m ÷ €40,152m revenue; €40,152m ÷ €31,248m capital', ['12.8% × 1.28×', 'r w']], ['Net income', '€4.6bn free cash flow ÷ 1.11', ['≈€4.1bn', 'r w']]], 'tight')) +
+      `</div>` + foot('Source: inputs as cited on slides 2–17; results rounded as shown.', pans.length - 1),
+  ];
+
+  /* wrap each slide: the page on top, its detail underneath, both inside .in (the part that scrolls) */
+  pans.forEach((p, i) => { const inn = document.createElement('div'), pg = document.createElement('div'); inn.className = 'in'; pg.className = 'pg';
+    while (p.firstChild) pg.appendChild(p.firstChild); inn.appendChild(pg);
+    if (DET[i]) { const d = document.createElement('div'); d.className = 'det'; d.innerHTML = DET[i]; inn.appendChild(d); }
+    p.appendChild(inn); p._in = inn; });
+
+  /* ---------------- navigation ----------------
+     ring: a continuous scroll position (wheel, trackpad, drag, arrows) eased every frame, panels on a cylinder;
+     open: the chosen panel grows to full screen in one CSS move with its content already there;
+     → / ← slide the next page in from the side and build its charts while it arrives; ↓ scrolls to the detail */
+  const N = pans.length, SIDE = 1960, RAD = .6, RR = 1000 / Math.sin(RAD), DH = 1080;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const video = $('video', pans[0]), bar = $('#bar'), nm = $('#nm'), ct = $('#ct');
+  let mode = 'ring', cur = 0, pos = 0, goal = 0, y = 0, ty = 0, lock = 0, raf = 0, last = 0, shown = -1, vidOn = null, wheelBlock = 0;
+  const T = (x, yy, z, r, s) => `translate3d(${x.toFixed(1)}px,${yy}px,${z.toFixed(1)}px) rotateY(${r.toFixed(2)}deg) scale(${s})`;
+  const ringT = k => { const a = k * RAD; return T(RR * Math.sin(a), -46, -RR * (1 - Math.cos(a)), -a * 57.29578, .5); };
+  const openT = k => T(k * SIDE, 0, 0, 0, 1);
+  const vis = (p, on) => { if (p._v !== on) { p._v = on; p.classList.toggle('gone', !on); } };
+  const snap = (p, tr, op) => { p.style.transition = 'none'; p.style.transform = tr; if (op != null) p.style.opacity = op; p.getBoundingClientRect(); p.style.transition = ''; };
+
+  const ringApply = () => pans.forEach((p, i) => { const k = i - pos, a = Math.abs(k);
+    if (a > 2.3) return vis(p, false);
+    vis(p, true); p.style.transform = ringT(k); p.style.opacity = clamp(1 - a * .45, 0, 1).toFixed(3); p.style.zIndex = 20 - Math.round(a * 4); });
+
+  const label = () => { const i = mode === 'ring' ? Math.round(clamp(pos, 0, N - 1)) : cur;
+    if (i !== shown) { shown = i; nm.textContent = NAMES[i]; ct.textContent = `${String(i + 1).padStart(2, '0')} of ${N}`; $('#bn').textContent = NAMES[i];
+      nm.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.22,.8,.2,1)' }); }
+    const v = i === 0; if (v !== vidOn) { vidOn = v; v ? video.play().catch(() => {}) : video.pause(); } };
+  const updBar = () => { const down = ty > DH / 2; $('#bdl').textContent = down ? 'Slide' : 'Detail'; $('#bd').classList.toggle('up', down); if (mode !== 'open') bar.classList.remove('on'); };
+
+  let dragging = false;
+  const tick = now => { const dt = last ? Math.min(50, now - last) : 16; last = now; let on = false;
+    if (mode === 'ring' && !lock) { const d = goal - pos; if (Math.abs(d) > .0008) { pos += d * (1 - Math.exp(-dt / 120)); on = true; } else pos = goal; ringApply(); label(); }
+    if (mode === 'open') { const d = ty - y; if (Math.abs(d) > .4) { y += d * (1 - Math.exp(-dt / 110)); on = true; } else y = ty; pans[cur]._in.style.transform = `translate3d(0,${(-y).toFixed(1)}px,0)`; }
+    raf = on || dragging ? requestAnimationFrame(tick) : 0; if (!raf) last = 0; };
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const ringTo = v => { goal = clamp(v, 0, N - 1); kick(); };
+  const scrollTo = v => { ty = clamp(v, 0, DET[cur] ? DH : 0); kick(); updBar(); };
+
+  /* slides that played a build are put back to their finished look once they are off screen */
+  const dirty = new Set(); let tidyT = 0;
+  const tidy = () => pans.forEach((p, i) => { if (i === cur) return; p._in.style.transform = ''; if (dirty.has(i)) { dirty.delete(i); instant(p, () => S[i].done()); } });
+  const settleOpen = () => { clearTimeout(tidyT); tidyT = setTimeout(() => { if (mode !== 'open') return; tidy(); pans.forEach((p, i) => { if (i !== cur) vis(p, false); }); }, 950); };
+  const play = i => { clear(); dirty.add(i); S[i].play(); };
+
+  const openSlide = (i, build) => { if (lock || mode === 'open') return;
+    mode = 'open'; cur = i; pos = goal = i; y = ty = 0; wheelBlock = performance.now() + 700;
+    const p = pans[i]; if (!p._v) { vis(p, true); snap(p, ringT(0), 1); }
+    ring.classList.add('tw', 'isopen'); chrome.classList.add('off');
+    pans.forEach((q, j) => { const k = j - i; q.classList.toggle('open', k === 0); if (q._v) { q.style.transform = openT(clamp(k, -1, 1)); q.style.zIndex = k ? 5 : 6; } });
+    p.style.opacity = 1; label(); updBar(); settleOpen();
+    if (build) play(i); };
+
+  const go = d => { if (mode !== 'open') return; const n = cur + d;
+    if (n < 0 || n >= N) { pans[cur].animate([{ transform: openT(0) }, { transform: T(-d * 46, 0, 0, 0, 1) }, { transform: openT(0) }], { duration: 460, easing: 'ease-out' }); return; }
+    const p = pans[n], was = p._v;
+    play(n);                                                         // reset its content while it is still off screen, then build
+    if (!was) { vis(p, true); snap(p, openT(d), 1); } else p.style.opacity = 1;
+    pans[cur].classList.remove('open'); p.classList.add('open');
+    pans.forEach((q, i) => { if (i !== n && q._v) { q.style.transform = openT(Math.sign(i - n)); q.style.zIndex = 5; } });
+    p.style.transform = openT(0); p.style.zIndex = 6;
+    cur = n; pos = goal = n; y = ty = 0; p._in.style.transform = ''; label(); updBar(); settleOpen(); };
+
+  const toRing = () => { if (mode !== 'open') return; clear(); clearTimeout(tidyT);
+    const p = pans[cur]; dirty.delete(cur); S[cur].done(); tidy();
+    p._in.classList.add('back'); p._in.style.transform = 'translate3d(0,0,0)'; y = ty = 0;
+    mode = 'ring'; lock = 1; p.classList.remove('open'); ring.classList.remove('isopen'); chrome.classList.remove('off');
+    pans.forEach((q, i) => { const k = i - cur; if (i !== cur && Math.abs(k) <= 2.3 && !q._v) { vis(q, true); snap(q, openT(Math.sign(k)), 0); } });
+    pos = goal = cur; ringApply(); label(); updBar(); wheelBlock = performance.now() + 700;
+    setTimeout(() => { ring.classList.remove('tw'); p._in.classList.remove('back'); lock = 0; }, 930); };
+
+  /* ---------------- input ---------------- */
+  let settle = 0, lastD = 0, hx = 0, hxT = 0, swiped = false;
+  addEventListener('wheel', e => { e.preventDefault(); const now = performance.now(); if (lock || now < wheelBlock) return;
+    const f = e.deltaMode === 1 ? 40 : 1, dx = e.deltaX * f, dy = e.deltaY * f;
+    if (mode === 'ring') { const d = Math.abs(dx) > Math.abs(dy) ? dx : dy; lastD = d; ringTo(goal + d / 560);
+      clearTimeout(settle); settle = setTimeout(() => ringTo(Math.round(goal + .22 * Math.sign(lastD))), 150); return; }
+    if (Math.abs(dx) > Math.abs(dy) * 1.2) {                        // a sideways swipe on an open slide turns the page, once per gesture
+      hx += dx; clearTimeout(hxT); hxT = setTimeout(() => { hx = 0; swiped = false; }, 200);
+      if (!swiped && Math.abs(hx) > 70) { swiped = true; go(Math.sign(hx)); } return; }
+    scrollTo(ty + dy / K); }, { passive: false });
+
+  let dx0 = 0, t0 = 0, moved = 0, vx = 0, lx = 0, lt = 0;
+  stage.addEventListener('pointerdown', e => { if (mode !== 'ring' || lock || e.button) return; dragging = true; moved = 0; dx0 = lx = e.clientX; lt = performance.now(); t0 = goal; vx = 0; kick(); });
+  addEventListener('pointermove', e => { if (!dragging) return; const now = performance.now(); moved = Math.max(moved, Math.abs(e.clientX - dx0)); if (moved > 6) stage.classList.add('drag');
+    vx = .75 * vx + .25 * ((e.clientX - lx) / Math.max(1, now - lt)); lx = e.clientX; lt = now; ringTo(t0 - (e.clientX - dx0) / K / 900); });
+  addEventListener('pointerup', () => { if (!dragging) return; dragging = false; stage.classList.remove('drag'); if (moved > 6) ringTo(Math.round(goal - vx / K * .45)); });
+
+  pans.forEach((p, i) => p.addEventListener('click', () => { if (moved > 6 || mode !== 'ring' || lock) return;
+    if (i === Math.round(pos) && Math.abs(pos - i) < .3) openSlide(i, false); else ringTo(i); }));
+
+  let barT = 0; const hideBar = () => { if (bar.matches(':hover')) barT = setTimeout(hideBar, 1200); else bar.classList.remove('on'); };
+  addEventListener('mousemove', () => { if (mode !== 'open') return; bar.classList.add('on'); clearTimeout(barT); barT = setTimeout(hideBar, 2200); });
+  $('#bp').onclick = () => go(-1); $('#bx').onclick = () => go(1); $('#bc').onclick = () => toRing(); $('#bd').onclick = () => scrollTo(ty > DH / 2 ? 0 : DH);
+
+  addEventListener('keydown', e => { const k = e.key;
+    if (k === 'f' || k === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); return; }
+    if ([' ', 'ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'PageDown', 'PageUp'].includes(k)) e.preventDefault();
+    if (e.repeat || lock) return;
+    if (mode === 'ring') {
+      if (k === 'ArrowRight' || k === 'PageDown') ringTo(Math.round(goal) + 1);
+      else if (k === 'ArrowLeft' || k === 'PageUp') ringTo(Math.round(goal) - 1);
+      else if (k === 'Enter' || k === ' ' || k === 'ArrowDown') openSlide(Math.round(goal), false);
+      return; }
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) go(1);
+    else if (k === 'ArrowLeft' || k === 'PageUp') go(-1);
+    else if (k === 'ArrowDown') scrollTo(DH);
+    else if (k === 'ArrowUp') scrollTo(0);
+    else if (k === 'Escape' || k === 'o' || k === 'O') toRing();
+    else if (k === 'r' || k === 'R') { scrollTo(0); play(cur); } });
+
+  /* ---------------- start: #n opens slide n, #nd its detail ---------------- */
+  S.forEach(s => s.done());
+  const hm = location.hash.match(/^#(\d+)(d?)/), start = hm ? clamp(+hm[1] - 1, 0, N - 1) : 0;
+  stage.classList.add('noanim'); pos = goal = start; ringApply(); label();
+  if (hm) { openSlide(start, false); if (hm[2]) { y = ty = DH; pans[start]._in.style.transform = `translate3d(0,${-DH}px,0)`; updBar(); } }
+  requestAnimationFrame(() => requestAnimationFrame(() => stage.classList.remove('noanim')));
+})();
+</script>
+</body>
+</html>
